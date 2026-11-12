@@ -7,7 +7,8 @@ You are working on **PROTOCOL**, an original cinematic third-person stealth / he
 1. `docs/00-project-brief.md` — what the game is. The design source of truth.
 2. `docs/01-plan.md` — the steps, in order, with the deliverable for each.
 3. `docs/decisions.md` — what the owner has already decided. Do not reopen these.
-4. `docs/handoff/README.md` — what to do when you are stuck.
+4. `docs/tech-notes.md` — architecture, guard AI, renderer pitfalls, performance budgets. Read before the benchmark and before any game code.
+5. `docs/handoff/README.md` — what to do when you are stuck.
 
 ## Current status
 
