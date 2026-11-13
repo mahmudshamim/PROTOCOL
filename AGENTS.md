@@ -14,7 +14,9 @@ You are working on **PROTOCOL**, an original cinematic third-person stealth / he
 
 - Repo is empty on purpose. The old prototype was deleted (still in git history, commit `5e64ae6`, do not restore it).
 - `preview/` holds a throwaway demo the owner asked for (see `preview/README.md`). Leave it alone; do not extend it or reuse it as the game's base.
-- Next task: **Step 0, then Step 1** in `docs/01-plan.md`.
+- Step 1 draft written: `docs/01-gdd.md`. **Waiting at Gate 1** for the owner's approval.
+- Step 0 (skills install) is still to do; it does not block Gate 1.
+- After Gate 1: Step 2, then Step 3.
 - Update this section whenever a step is finished or a gate is passed.
 
 ## Hard rules
