@@ -1,0 +1,22 @@
+{
+  "name": "webgl-high-nomsaa",
+  "path": "webgl",
+  "backend": "webgl",
+  "quality": "high",
+  "resolution": "1920x1080",
+  "bloom": true,
+  "shadowMap": 2048,
+  "loadMs": 316,
+  "cpuMsPerFrame": 3.48,
+  "drawCalls": 374,
+  "triangles": 1143884,
+  "frameMs": 23.24,
+  "frameMsP95": 26.2,
+  "fps": 43,
+  "jsHeapMB": 27,
+  "textureEstimate": {
+    "textures": 32,
+    "mb": 176
+  },
+  "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/157.0.0.0 Safari/537.36"
+}

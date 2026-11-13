@@ -14,9 +14,10 @@ You are working on **PROTOCOL**, an original cinematic third-person stealth / he
 
 - Repo is empty on purpose. The old prototype was deleted (still in git history, commit `5e64ae6`, do not restore it).
 - `preview/` holds a throwaway demo the owner asked for (see `preview/README.md`). Leave it alone; do not extend it or reuse it as the game's base.
-- Step 1 draft written: `docs/01-gdd.md`. **Waiting at Gate 1** for the owner's approval.
-- Step 0 (skills install) is still to do; it does not block Gate 1.
-- After Gate 1: Step 2, then Step 3.
+- Gate 1 approved (GDD). Steps 2 and 3 done: `docs/02-visual-direction.md`, `docs/03-benchmark-report.md`, code in `benchmark/`.
+- **Waiting at Gate 2** for the owner's approval of the look, renderer and framework.
+- Step 0 (skills install) is still to do; it does not block Gate 2.
+- After Gate 2: Step 4, then Step 5.
 - Update this section whenever a step is finished or a gate is passed.
 
 ## Hard rules

@@ -1,0 +1,22 @@
+{
+  "name": "webgl-low",
+  "path": "webgl",
+  "backend": "webgl",
+  "quality": "low",
+  "resolution": "1280x720",
+  "bloom": false,
+  "shadowMap": 1024,
+  "loadMs": 165,
+  "cpuMsPerFrame": 2.8,
+  "drawCalls": 360,
+  "triangles": 1143870,
+  "frameMs": 12.27,
+  "frameMsP95": 16.5,
+  "fps": 81.5,
+  "jsHeapMB": 35,
+  "textureEstimate": {
+    "textures": 32,
+    "mb": 164
+  },
+  "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/157.0.0.0 Safari/537.36"
+}

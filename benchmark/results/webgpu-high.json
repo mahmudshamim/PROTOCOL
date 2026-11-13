@@ -1,0 +1,22 @@
+{
+  "name": "webgpu-high",
+  "path": "webgpu",
+  "backend": "webgpu",
+  "quality": "high",
+  "resolution": "1920x1080",
+  "bloom": true,
+  "shadowMap": 2048,
+  "loadMs": 144,
+  "cpuMsPerFrame": 4.13,
+  "drawCalls": 269,
+  "triangles": 896770,
+  "frameMs": 12.66,
+  "frameMsP95": 16.9,
+  "fps": 79,
+  "jsHeapMB": 35,
+  "textureEstimate": {
+    "textures": 32,
+    "mb": 176
+  },
+  "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/157.0.0.0 Safari/537.36"
+}

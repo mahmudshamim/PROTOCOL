@@ -1,0 +1,22 @@
+{
+  "name": "webgpu-low",
+  "path": "webgpu",
+  "backend": "webgpu",
+  "quality": "low",
+  "resolution": "1280x720",
+  "bloom": false,
+  "shadowMap": 1024,
+  "loadMs": 287,
+  "cpuMsPerFrame": 4.21,
+  "drawCalls": 257,
+  "triangles": 896758,
+  "frameMs": 12.11,
+  "frameMsP95": 12.9,
+  "fps": 82.6,
+  "jsHeapMB": 39,
+  "textureEstimate": {
+    "textures": 32,
+    "mb": 164
+  },
+  "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/157.0.0.0 Safari/537.36"
+}

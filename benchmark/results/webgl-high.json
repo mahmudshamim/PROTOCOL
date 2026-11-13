@@ -1,0 +1,22 @@
+{
+  "name": "webgl-high",
+  "path": "webgl",
+  "backend": "webgl",
+  "quality": "high",
+  "resolution": "1920x1080",
+  "bloom": true,
+  "shadowMap": 2048,
+  "loadMs": 260,
+  "cpuMsPerFrame": 2.46,
+  "drawCalls": 374,
+  "triangles": 1143884,
+  "frameMs": 27.89,
+  "frameMsP95": 29.3,
+  "fps": 35.9,
+  "jsHeapMB": 31,
+  "textureEstimate": {
+    "textures": 32,
+    "mb": 176
+  },
+  "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/157.0.0.0 Safari/537.36"
+}

@@ -1,0 +1,22 @@
+{
+  "name": "webgpu-forced-webgl2-low",
+  "path": "webgpu-forced-webgl2",
+  "backend": "webgpu-renderer-on-webgl2",
+  "quality": "low",
+  "resolution": "1280x720",
+  "bloom": false,
+  "shadowMap": 1024,
+  "loadMs": 226,
+  "cpuMsPerFrame": 3.96,
+  "drawCalls": 257,
+  "triangles": 3587032,
+  "frameMs": 14.42,
+  "frameMsP95": 19.2,
+  "fps": 69.4,
+  "jsHeapMB": 40,
+  "textureEstimate": {
+    "textures": 32,
+    "mb": 164
+  },
+  "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/157.0.0.0 Safari/537.36"
+}

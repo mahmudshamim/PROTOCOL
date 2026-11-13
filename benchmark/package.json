@@ -1,0 +1,11 @@
+{
+  "name": "protocol-benchmark",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "vite --port 5201 --strictPort",
+    "dev:webgpu": "vite --mode webgpu --port 5202 --strictPort"
+  },
+  "dependencies": { "three": "0.172.0" },
+  "devDependencies": { "vite": "^6.0.7" }
+}

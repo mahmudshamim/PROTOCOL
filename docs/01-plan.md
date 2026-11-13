@@ -7,9 +7,9 @@ No gameplay code before Gate 4. The benchmark in Step 3 is the only code allowed
 ## Progress
 
 - [ ] Step 0 — Setup
-- [x] Step 1 — Game Design Document (draft) → **Gate 1 pending**
-- [ ] Step 2 — Visual direction (short)
-- [ ] Step 3 — Visual benchmark → **Gate 2**
+- [x] Step 1 — Game Design Document → **Gate 1 approved**
+- [x] Step 2 — Visual direction (short)
+- [x] Step 3 — Visual benchmark → **Gate 2 pending**
 - [ ] Step 4 — Visual Bible, environments, characters and vehicles
 - [ ] Step 5 — Asset catalogue and pipeline → **Gate 3**
 - [ ] Step 6 — Production roadmap → **Gate 4**
