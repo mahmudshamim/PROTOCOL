@@ -13,6 +13,7 @@ You are working on **PROTOCOL**, an original cinematic third-person stealth / he
 ## Current status
 
 - Repo is empty on purpose. The old prototype was deleted (still in git history, commit `5e64ae6`, do not restore it).
+- `preview/` holds a throwaway demo the owner asked for (see `preview/README.md`). Leave it alone; do not extend it or reuse it as the game's base.
 - Next task: **Step 0, then Step 1** in `docs/01-plan.md`.
 - Update this section whenever a step is finished or a gate is passed.
 

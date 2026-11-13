@@ -10,6 +10,8 @@ Approved by the owner. Do not reopen without asking. Add new rows at the bottom.
 | 2026-11-12 | Old React Three Fiber prototype **deleted**. Start clean. | Recoverable from git commit `5e64ae6`; do not restore. |
 | 2026-11-12 | Main work is done by another coding agent. Claude is used only for handoffs. | See `docs/handoff/README.md`. |
 | 2026-11-12 | NFS Underground 2 web port is an architecture reference only. | No code, assets or branding from it. |
+| 2026-11-13 | Owner asked Claude for a small playable **preview slice** in `preview/` before Gate 1. | Throwaway demo with placeholder models. Not the benchmark, not a base for production code. The no-gameplay-code rule still applies everywhere else. |
+| 2026-11-13 | polyfork.dev low-poly models: allowed for greybox and placeholders only, never final assets. | Check each model's licence page first. |
 
 ## Open decisions (owner must answer)
 

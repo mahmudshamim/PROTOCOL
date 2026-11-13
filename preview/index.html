@@ -1,0 +1,63 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>PROTOCOL — Preview Slice</title>
+<style>
+  html, body { margin: 0; height: 100%; background: #000; overflow: hidden; font-family: "Helvetica Neue", Arial, sans-serif; color: #e8e8e8; }
+  canvas { display: block; }
+  .layer { position: fixed; inset: 0; pointer-events: none; }
+  #title { display: flex; flex-direction: column; align-items: center; justify-content: center; background: linear-gradient(#0008, #000c); pointer-events: auto; cursor: pointer; }
+  #title h1 { font-size: 9vw; letter-spacing: 1.6vw; margin: 0; font-weight: 200; }
+  #title p { letter-spacing: .4em; font-size: 13px; opacity: .8; margin: 10px 0; }
+  #title .go { margin-top: 40px; color: #6fd0ff; animation: pulse 1.6s infinite; }
+  @keyframes pulse { 50% { opacity: .3; } }
+  #bars::before, #bars::after { content: ""; position: absolute; left: 0; right: 0; height: 11vh; background: #000; transition: transform .6s; }
+  #bars::before { top: 0; } #bars::after { bottom: 0; }
+  #bars.off::before { transform: translateY(-100%); } #bars.off::after { transform: translateY(100%); }
+  #caption { position: absolute; bottom: 14vh; width: 100%; text-align: center; letter-spacing: .3em; font-size: 15px; text-shadow: 0 0 8px #000; }
+  #hud { display: none; }
+  #obj { position: absolute; top: 22px; left: 26px; max-width: 420px; }
+  #obj small { letter-spacing: .3em; font-size: 10px; opacity: .6; display: block; }
+  #obj b { font-weight: 400; font-size: 17px; }
+  #sec { position: absolute; top: 22px; right: 26px; text-align: right; }
+  #sec small { letter-spacing: .3em; font-size: 10px; opacity: .6; display: block; }
+  #sec b { font-weight: 400; font-size: 17px; }
+  #detect { position: absolute; top: 74px; left: 50%; transform: translateX(-50%); width: 220px; height: 4px; background: #fff2; }
+  #bar { height: 100%; width: 0; background: #7cff9a; }
+  #flags { position: absolute; bottom: 24px; left: 26px; font-size: 11px; letter-spacing: .25em; opacity: .75; line-height: 1.9; }
+  #prompt { position: absolute; bottom: 20vh; width: 100%; text-align: center; font-size: 15px; letter-spacing: .15em; text-shadow: 0 0 6px #000; }
+  #prompt kbd { border: 1px solid #fff9; border-radius: 4px; padding: 2px 8px; margin-right: 8px; font-family: inherit; }
+  #note { position: absolute; top: 96px; width: 100%; text-align: center; font-size: 13px; letter-spacing: .2em; color: #ffb36b; text-shadow: 0 0 6px #000; }
+  #end { display: none; flex-direction: column; align-items: center; justify-content: center; background: #000d; text-align: center; }
+  #end h2 { font-size: 5vw; letter-spacing: 1vw; font-weight: 200; margin: 0 0 12px; }
+  #end p { max-width: 560px; line-height: 1.7; opacity: .85; }
+  #end small { margin-top: 30px; letter-spacing: .3em; color: #6fd0ff; }
+  #load { display: flex; align-items: center; justify-content: center; background: #000; letter-spacing: .4em; font-size: 12px; }
+  #tag { position: fixed; right: 12px; bottom: 8px; font-size: 10px; opacity: .45; letter-spacing: .15em; }
+</style>
+</head>
+<body>
+<div id="bars" class="layer off"></div>
+<div id="hud" class="layer">
+  <div id="obj"><small>OBJECTIVE</small><b id="objText"></b></div>
+  <div id="sec"><small>SECURITY</small><b id="secText"></b></div>
+  <div id="detect"><div id="bar"></div></div>
+  <div id="note"></div>
+  <div id="prompt"></div>
+  <div id="flags"></div>
+</div>
+<div id="caption" class="layer"></div>
+<div id="title" class="layer">
+  <h1>PROTOCOL</h1>
+  <p>ONE DEVICE. NO WAY BACK.</p>
+  <p class="go">CLICK TO BEGIN</p>
+  <p style="opacity:.5;margin-top:30px">WASD move · MOUSE look · SHIFT sprint · C sneak · E interact · F takedown</p>
+</div>
+<div id="end" class="layer"><h2 id="endTitle"></h2><p id="endText"></p><small>PRESS R TO PLAY AGAIN</small></div>
+<div id="load" class="layer">LOADING</div>
+<div id="tag">PREVIEW SLICE · PLACEHOLDER MODELS · NOT FINAL ART</div>
+<script type="module" src="/main.js"></script>
+</body>
+</html>
