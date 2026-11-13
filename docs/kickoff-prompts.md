@@ -38,10 +38,17 @@ Do Step 6 of docs/01-plan.md. Use docs/tech-notes.md for the architecture. Stop 
 ## After Gate 4 (production)
 
 ```
-Gate 4 is approved. Log it and update AGENTS.md.
-Build milestone 1 from docs/08-roadmap.md only. Follow docs/tech-notes.md sections 1 to 3:
-simulation separate from rendering, typed events, missions as data, tests for each branch.
-Commit often. Stop when milestone 1 meets its definition of done.
+Gate 4 is approved. Log it and update AGENTS.md. Do Step 0 of docs/01-plan.md if it is not done.
+Build Milestone 0 from docs/08-roadmap.md only, in a new game/ folder. Follow docs/tech-notes.md
+sections 1 to 3: simulation separate from rendering, typed events, missions as data, tests.
+Ask me before installing anything. Commit often. Stop when Milestone 0 meets its definition of done.
+```
+
+For each later milestone:
+
+```
+Milestone N is approved. Log it and update AGENTS.md.
+Build Milestone N+1 from docs/08-roadmap.md only. Greybox first, art after. Stop at its definition of done.
 ```
 
 ## When the agent is stuck

@@ -14,10 +14,10 @@ You are working on **PROTOCOL**, an original cinematic third-person stealth / he
 
 - Repo is empty on purpose. The old prototype was deleted (still in git history, commit `5e64ae6`, do not restore it).
 - `preview/` holds a throwaway demo the owner asked for (see `preview/README.md`). Leave it alone; do not extend it or reuse it as the game's base.
-- Gates 1 and 2 approved. Steps 1–5 written: `docs/01-gdd.md` to `docs/07-asset-catalogue.md`; benchmark code in `benchmark/`.
-- **Waiting at Gate 3** for the owner's approval of the asset catalogue, tool installs and a spending ceiling.
-- Step 0 (skills install) is still to do.
-- After Gate 3: Step 6, the production roadmap.
+- Gates 1–3 approved. All pre-production documents written: `docs/01-gdd.md` to `docs/08-roadmap.md`; benchmark code in `benchmark/`.
+- **Waiting at Gate 4** for the owner's approval of `docs/08-roadmap.md`.
+- After Gate 4: Milestone 0 in the roadmap, in a new `game/` folder. Do Step 0 (skills install) first.
+- Open with the owner: tool installs, spending ceiling (see `docs/decisions.md`).
 - Update this section whenever a step is finished or a gate is passed.
 
 ## Hard rules
