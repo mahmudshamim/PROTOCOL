@@ -15,12 +15,11 @@ Approved by the owner. Do not reopen without asking. Add new rows at the bottom.
 | 2026-11-13 | Combat: **non-lethal melee only**. No firearm for the player; guards are armed. | A non-lethal gadget may be added later. |
 | 2026-11-13 | **Checkpoints** at major moments, storing full mission state. | List in `docs/01-gdd.md` §9. |
 | 2026-11-13 | **Gate 1 approved**: `docs/01-gdd.md`. | Owner said to proceed. |
+| 2026-11-13 | **Gate 2 approved**: renderer `WebGPURenderer` with WebGL 2 fallback; vanilla Three.js; High 1080p / Low 720p profiles. | Owner said to proceed. See `docs/03-benchmark-report.md`. |
 
 ## Open decisions (owner must answer)
 
 | Needed by | Question |
 |---|---|
-| Gate 2 | Approve the look and the three recommendations in `docs/03-benchmark-report.md`. |
-| Step 3 | WebGL 2 or WebGPU renderer (decided from benchmark numbers). |
-| Step 3 | Vanilla Three.js or React Three Fiber for the game (decided from benchmark). |
+| Gate 3 | Approve `docs/07-asset-catalogue.md`; give permission to install Blender and gltf-transform. |
 | Step 5 | Budget ceiling for paid assets and AI generation credits. |
