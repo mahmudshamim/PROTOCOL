@@ -14,16 +14,17 @@ You are working on **PROTOCOL**, an original cinematic third-person stealth / he
 
 - Repo is empty on purpose. The old prototype was deleted (still in git history, commit `5e64ae6`, do not restore it).
 - `preview/` holds a throwaway demo the owner asked for (see `preview/README.md`). Leave it alone; do not extend it or reuse it as the game's base.
-- Gates 1–3 approved. All pre-production documents written: `docs/01-gdd.md` to `docs/08-roadmap.md`; benchmark code in `benchmark/`.
-- **Waiting at Gate 4** for the owner's approval of `docs/08-roadmap.md`.
-- After Gate 4: Milestone 0 in the roadmap, in a new `game/` folder. Do Step 0 (skills install) first.
+- All four gates approved. Pre-production documents: `docs/01-gdd.md` to `docs/08-roadmap.md`.
+- **Milestone 0 (foundation) is built** in `game/` (see `game/README.md`): 16 tests pass, type check clean. Waiting for the owner to run it and approve.
+- Not done in Milestone 0: Blender headless scripts and KTX2 compression (system installs not yet permitted); the asset script uses Meshopt + WebP meanwhile.
+- Next: Milestone 1 part 1a (movement) from `docs/08-roadmap.md`, greybox first. Do Step 0 (skills install) before starting.
 - Open with the owner: tool installs, spending ceiling (see `docs/decisions.md`).
 - Update this section whenever a step is finished or a gate is passed.
 
 ## Hard rules
 
-1. **No gameplay code until Gate 4 is approved.** The only code allowed before that is the visual benchmark in `benchmark/` (Step 3).
-2. Work one step at a time. Stop at every gate and wait for the owner's explicit approval. Log each approval in `docs/decisions.md`.
+1. Gate 4 is approved: gameplay code goes in `game/` only, **one roadmap milestone at a time**. `preview/` and `benchmark/` are reference, do not build on them.
+2. Work one milestone at a time. Stop at every definition of done and wait for the owner's explicit approval. Log each approval in `docs/decisions.md`.
 3. Keep the full scope: facility, motorcycle, container yard, sports car, police pursuit, final escape. Do not turn it into a generic racing game. Do not drop stealth or branching.
 4. Never force one fixed mission path. Player actions must change gameplay, not only dialogue.
 5. Assets: quality first. Use an asset only if you opened its page and checked its licence. Never invent links, prices, licences or compatibility. No assets from existing games. No real car brands or logos.

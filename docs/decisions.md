@@ -17,11 +17,13 @@ Approved by the owner. Do not reopen without asking. Add new rows at the bottom.
 | 2026-11-13 | **Gate 1 approved**: `docs/01-gdd.md`. | Owner said to proceed. |
 | 2026-11-13 | **Gate 2 approved**: renderer `WebGPURenderer` with WebGL 2 fallback; vanilla Three.js; High 1080p / Low 720p profiles. | Owner said to proceed. See `docs/03-benchmark-report.md`. |
 | 2026-11-13 | **Gate 3 approved**: asset catalogue and pipeline. | Owner said to proceed. Tool installs and budget were not answered and stay open. |
+| 2026-11-13 | **Gate 4 approved**: production roadmap. Coding started in `game/`. | Owner said to do the remaining work. |
+| 2026-11-13 | Milestone 0 built. Asset compression uses Meshopt + WebP for now. | KTX2 and Blender scripts wait on install permission. Owner has not yet run it in a visible browser. |
 
 ## Open decisions (owner must answer)
 
 | Needed by | Question |
 |---|---|
-| Gate 4 | Approve `docs/08-roadmap.md`. Gameplay coding starts after this. |
-| Milestone 0 | Permission to install Blender and `@gltf-transform/cli`. |
+| Milestone 0 | Owner opens http://localhost:5210 and approves Milestone 0. |
+| Milestone 1 | Permission to install Blender and KTX-Software (system tools). |
 | Milestone 1 art pass | Budget ceiling for paid assets, AI generation credits and commissioned animation. |

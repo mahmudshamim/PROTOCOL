@@ -1,0 +1,21 @@
+{
+  "name": "protocol-game",
+  "private": true,
+  "version": "0.0.1",
+  "type": "module",
+  "scripts": {
+    "dev": "vite --port 5210 --strictPort",
+    "build": "tsc --noEmit && vite build",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "asset": "node scripts/optimize-asset.mjs"
+  },
+  "dependencies": { "three": "0.172.0" },
+  "devDependencies": {
+    "@gltf-transform/cli": "^4.1.0",
+    "@types/three": "0.172.0",
+    "typescript": "~5.7.2",
+    "vite": "^6.0.7",
+    "vitest": "^3.0.0"
+  }
+}

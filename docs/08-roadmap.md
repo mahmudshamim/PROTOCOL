@@ -1,6 +1,6 @@
 # PROTOCOL — Production Roadmap
 
-Status: **waiting for Gate 4 approval.** No gameplay code is written until this is approved.
+Status: **approved 2026-11-13.** Milestone 0 built, waiting for the owner's check.
 
 Decided already: `WebGPURenderer` with WebGL 2 fallback, vanilla Three.js, TypeScript, Vite, Rapier physics, architecture as in `docs/tech-notes.md`. Target machine: MacBook Air M1, 8 GB, Chrome.
 
@@ -27,7 +27,9 @@ The empty game: everything later milestones stand on.
 | Debug tools | Frame-time and memory overlay, free camera, state inspector |
 | Asset pipeline scripts | Blender headless + `gltf-transform`, one command per asset |
 
-**Needs:** permission to install Blender and `gltf-transform`.
+**Needs:** permission to install Blender and KTX-Software.
+
+**Result, 2026-11-13 (headless Chrome, M1 Air):** test room at 97 fps High and 111 fps Low on WebGPU, 68 fps High on the WebGL 2 fallback; 51 draw calls; 5.5 MB of assets; 16 unit tests pass. Three props went through the compression script (crate 2.4 MB → 407 KB). Not built: Blender headless scripts and KTX2 (installs not yet permitted), and the free camera stands in for a fuller state inspector. Not yet seen by the owner in a visible browser.
 **Done when:** a textured test room loads through the pipeline, runs at 60 fps on High, the overlay shows the numbers, and the reducer has passing tests.
 
 ## Milestone 1 — The facility
