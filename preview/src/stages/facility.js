@@ -86,7 +86,7 @@ export async function create(ctx) {
 
   // lamps: lit zones
   const lamps = [];
-  for (const [x, z] of [[-24, 20], [9, -9], [-30, 6], [34, 6]]) {
+  for (const [x, z] of [[-24, 20], [16, -5], [-30, 6], [34, 6]]) {
     W.mesh(new THREE.CylinderGeometry(0.1, 0.14, 8), A.metal, x, 4, z);
     const head = W.mesh(new THREE.BoxGeometry(1.2, 0.15, 0.5), glow(0xffd9a0, 3), x, 8, z, false);
     const s = new THREE.SpotLight(0xffd0a0, 260, 34, 0.75, 0.7, 1.6); s.position.set(x, 8, z); s.target.position.set(x, 0, z); W.add(s); W.add(s.target);
