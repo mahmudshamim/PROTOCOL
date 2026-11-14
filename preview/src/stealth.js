@@ -1,6 +1,6 @@
 // Guards, security cameras, perception and alarms (GDD sections 4 and 5).
 // Used by the facility and the container yard.
-import { THREE, human, anim, face, clamp, glow, A } from './core.js';
+import { THREE, human, anim, face, clamp, glow, A, punch, flinch, applyPose, shake } from './core.js';
 import { M } from './state.js';
 import { audio } from './audio.js';
 import { hud } from './hud.js';
@@ -130,8 +130,9 @@ export function createStealth(world, opts) {
           anim(g, 'Idle'); face(g, pp.x - gp.x, pp.z - gp.z, dt, 8);
           g.punchT = (g.punchT ?? 0.8) - dt;
           if (g.punchT <= 0 && g.stun <= 0) {
-            g.punchT = 1.1 + Math.random() * 0.4; audio.burst(0.08, 0.2, 900);
+            g.punchT = 1.1 + Math.random() * 0.4; punch(g); audio.whoosh();
             if (Math.random() < 0.3) {
+              setTimeout(() => { audio.punch(false); flinch(player); shake(0.06); }, 110);
               if (hurt(10)) return opts.onCapture('They beat you down and cuffed you.');
             }
           }
@@ -193,9 +194,11 @@ export function createStealth(world, opts) {
   let lastHit = null, lastHitT = 0;
   let attackCd = 0, calmT = 0;
   function knockOut(g, text) {
-    g.down = true; g.radio = null; g.mixer.stopAllAction(); g.model.rotation.x = -Math.PI / 2; g.model.position.y = 0.25; g.cone.visible = false;
+    g.down = true; g.radio = null; g.fallT = 0; g.cone.visible = false;
     M.takedowns++; hud.note(text);
   }
+  const spark = new THREE.Mesh(new THREE.SphereGeometry(0.12, 10, 8), glow(0xffe0a0, 10)); spark.visible = false; world.add(spark);
+  let sparkT = 0;
   function nearest(maxD, pred = canTakedown) {
     let best = null, bd = maxD;
     for (const g of guards) { const d = g.root.position.distanceTo(player.root.position); if (d < bd && pred(g)) { bd = d; best = g; } }
@@ -213,25 +216,40 @@ export function createStealth(world, opts) {
       if (calmT > 5 && M.health < 100) { M.health = Math.min(100, M.health + 12 * dt); hud.health(M.health); }
       lastHitT = Math.max(0, lastHitT - dt);
     },
-    animate(dt) { for (const g of guards) if (g.active && !g.down) g.mixer.update(dt); },
+    animate(dt) {
+      for (const g of guards) {
+        if (!g.active) continue;
+        if (!g.down) { g.mixer.update(dt); applyPose(g, dt); continue; }
+        if (g.fallT !== undefined && g.fallT < 1) { // topple over
+          g.fallT = Math.min(1, g.fallT + dt / 0.45); const k = g.fallT * g.fallT;
+          g.model.rotation.x = -Math.PI / 2 * k; g.model.position.y = 0.25 * k;
+          if (g.fallT >= 1) { g.mixer.stopAllAction(); audio.burst(0.15, 0.2, 300); }
+          else g.mixer.update(dt);
+        }
+      }
+      if (sparkT > 0) { sparkT -= dt; spark.scale.setScalar(1 + (0.12 - sparkT) * 18); if (sparkT <= 0) spark.visible = false; }
+    },
     nearest,
     /** F: a silent takedown on a guard who has not made you, a punch on one who has. */
     attack() {
       if (attackCd > 0) return false;
       const quiet = nearest(1.9);
       if (quiet) {
-        audio.ping(90, 0.35, 0.2);
+        punch(player); flinch(quiet); setTimeout(() => audio.punch(true), 60); shake(0.05);
         knockOut(quiet, quiet.def.control ? 'CONTROL ROOM DOWN — NOBODY IS WATCHING THE CAMERAS' : 'GUARD DOWN — HIS RADIO CALL NEVER WENT OUT');
         return true;
       }
       const g = nearest(3.2, canFight); if (!g) return false;
+      punch(player); flinch(g); audio.whoosh();
       attackCd = 0.32; g.hp = (g.hp ?? 100) - 50; g.stun = 1.0; lastHit = g; lastHitT = 3; hud.pop(headPos(g), '-50', '#ffd27a'); g.punchT = Math.max(g.punchT ?? 0, 1.2);
       if (g.radio !== null) g.radio += 1.0; // a punch interrupts his radio call
       const p = player.root.position, gp = g.root.position, d = Math.max(0.01, gp.distanceTo(p));
       if (d > 1.2) { p.x += ((gp.x - p.x) / d) * (d - 1.1); p.z += ((gp.z - p.z) / d) * (d - 1.1); world.resolve(p); } // lunge in
       player.h = Math.atan2(gp.x - p.x, gp.z - p.z); player.root.rotation.y = player.h; // face him
       gp.x += ((gp.x - p.x) / d) * 0.5; gp.z += ((gp.z - p.z) / d) * 0.5; world.resolve(gp);
-      audio.burst(0.12, 0.35, 700); audio.ping(70, 0.2, 0.25);
+      const ko = g.hp <= 0;
+      setTimeout(() => audio.punch(ko), 70); shake(ko ? 0.16 : 0.09, ko ? 0.25 : 0.15);
+      spark.position.set((p.x + gp.x) / 2, 1.45, (p.z + gp.z) / 2); spark.visible = true; sparkT = 0.12;
       this.noise(gp.clone(), 15);
       if (g.hp <= 0) knockOut(g, g.radio === null && !M.alarm ? 'GUARD DOWN — LOUD, BUT HE NEVER GOT ON THE RADIO' : 'GUARD DOWN — THAT FIGHT WAS LOUD');
       return true;

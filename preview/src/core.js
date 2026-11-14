@@ -43,7 +43,18 @@ if (!LOW) {
   composer.addPass(new OutputPass());
 }
 export const setBloom = (s) => { if (bloomPass) bloomPass.strength = s; };
-export const render = () => (composer ? composer.render() : renderer.render(scene, camera));
+let shakeT = 0, shakeAmt = 0;
+const shakeOff = new THREE.Vector3();
+/** Short camera shake, e.g. a punch landing. */
+export const shake = (amount = 0.08, time = 0.15) => { shakeAmt = Math.max(shakeAmt, amount); shakeT = Math.max(shakeT, time); };
+export function render(dt = 0.016) {
+  if (shakeT > 0) {
+    shakeT -= dt; const a = shakeAmt * Math.max(0, shakeT) / 0.15;
+    shakeOff.set((Math.random() - 0.5) * a, (Math.random() - 0.5) * a, (Math.random() - 0.5) * a); camera.position.add(shakeOff);
+  }
+  composer ? composer.render() : renderer.render(scene, camera);
+  if (shakeT > 0 || shakeAmt) { camera.position.sub(shakeOff); shakeOff.set(0, 0, 0); if (shakeT <= 0) shakeAmt = 0; }
+}
 addEventListener('resize', () => {
   camera.aspect = innerWidth / innerHeight; camera.updateProjectionMatrix();
   renderer.setSize(innerWidth, innerHeight); composer?.setSize(innerWidth, innerHeight);
@@ -198,7 +209,49 @@ export function human(parent, tint) {
   const mixer = new THREE.AnimationMixer(model), acts = {};
   for (const c of A.soldier.animations) acts[c.name] = mixer.clipAction(c);
   acts.Idle.play();
-  return { root, model, mixer, acts, cur: 'Idle', h: 0, speed: 0 };
+  return { root, model, mixer, acts, cur: 'Idle', h: 0, speed: 0, bones: {} };
+}
+const bone = (e, n) => (e.bones[n] ??= e.model.getObjectByName('mixamorig' + n));
+/** Start a punch on this character (alternates left and right). */
+export function punch(e) { e.punchSide = e.punchSide === 'Right' ? 'Left' : 'Right'; e.punchT = 0; }
+/** Start a hit reaction (body snaps back). */
+export function flinch(e) { e.flinchT = 0; }
+const _qa = new THREE.Quaternion(), _qb = new THREE.Quaternion(), _qc = new THREE.Quaternion(), _va = new THREE.Vector3();
+const _f = new THREE.Vector3(), _r = new THREE.Vector3(), _t = new THREE.Vector3(), UP = new THREE.Vector3(0, 1, 0);
+/** Turn a bone (in world space) by k of the way so it points along dir. Mixamo bones point down their local +Y. */
+function aimBone(b, dir, k) {
+  if (!b) return;
+  b.updateWorldMatrix(true, false);
+  const qW = b.getWorldQuaternion(_qa);
+  _qb.setFromUnitVectors(_va.set(0, 1, 0).applyQuaternion(qW).normalize(), dir);
+  _qc.identity().slerp(_qb, k).multiply(qW);
+  b.quaternion.copy(b.parent.getWorldQuaternion(_qb).invert().multiply(_qc));
+}
+/** Rotate a bone in world space about an axis. */
+function turnBone(b, axis, angle) {
+  if (!b) return;
+  b.updateWorldMatrix(true, false);
+  _qc.setFromAxisAngle(axis, angle).multiply(b.getWorldQuaternion(_qa));
+  b.quaternion.copy(b.parent.getWorldQuaternion(_qb).invert().multiply(_qc));
+}
+/** Procedural poses layered on top of the animation clips. Call after mixer.update(). */
+export function applyPose(e, dt) {
+  const punching = e.punchT !== undefined && e.punchT < 0.3, flinching = e.flinchT !== undefined && e.flinchT < 0.35;
+  if (!punching && !flinching) return;
+  _f.set(Math.sin(e.h), 0, Math.cos(e.h)); _r.set(-_f.z, 0, _f.x); // forward and right in world space
+  if (punching) {
+    e.punchT += dt;
+    const k = Math.sin(Math.PI * Math.min(1, e.punchT / 0.3)), side = e.punchSide, sign = side === 'Right' ? 1 : -1;
+    turnBone(bone(e, 'Spine1'), UP, sign * 0.4 * k); // shoulder drives through
+    _t.copy(_f).addScaledVector(_r, -sign * 0.15).add(_va.set(0, 0.08, 0)).normalize();
+    aimBone(bone(e, side + 'Arm'), _t, k);
+    aimBone(bone(e, side + 'ForeArm'), _t, k);
+  }
+  if (flinching) {
+    e.flinchT += dt;
+    const k = Math.sin(Math.PI * Math.min(1, e.flinchT / 0.35));
+    turnBone(bone(e, 'Spine1'), _r, 0.4 * k); turnBone(bone(e, 'Head'), _r, 0.45 * k); // snap back
+  }
 }
 export function anim(e, name) {
   if (e.cur === name) return;

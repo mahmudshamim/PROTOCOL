@@ -43,6 +43,27 @@ export const audio = {
     g.gain.setValueAtTime(vol, c.currentTime); g.gain.exponentialRampToValueAtTime(0.0001, c.currentTime + dur);
     s.connect(f).connect(g).connect(c.destination); s.start(0, Math.random()); s.stop(c.currentTime + dur);
   },
+  /** Punch impact: a low thump plus a sharp smack. heavy = knockout blow. */
+  punch(heavy = false) {
+    if (!this.ctx) return;
+    const c = this.ctx, t = c.currentTime;
+    const o = c.createOscillator(), g = c.createGain();
+    o.type = 'sine'; o.frequency.setValueAtTime(heavy ? 150 : 180, t); o.frequency.exponentialRampToValueAtTime(heavy ? 38 : 55, t + (heavy ? 0.22 : 0.12));
+    g.gain.setValueAtTime(heavy ? 0.8 : 0.55, t); g.gain.exponentialRampToValueAtTime(0.0001, t + (heavy ? 0.3 : 0.16));
+    o.connect(g).connect(c.destination); o.start(t); o.stop(t + 0.32);
+    const s = c.createBufferSource(), f = c.createBiquadFilter(), sg = c.createGain();
+    s.buffer = this.noise; f.type = 'bandpass'; f.frequency.value = heavy ? 1400 : 2200; f.Q.value = 0.8;
+    sg.gain.setValueAtTime(heavy ? 0.5 : 0.35, t); sg.gain.exponentialRampToValueAtTime(0.0001, t + 0.07);
+    s.connect(f).connect(sg).connect(c.destination); s.start(t, Math.random()); s.stop(t + 0.08);
+  },
+  /** Fist cutting the air just before a punch lands. */
+  whoosh() {
+    if (!this.ctx) return;
+    const c = this.ctx, t = c.currentTime, s = c.createBufferSource(), f = c.createBiquadFilter(), g = c.createGain();
+    s.buffer = this.noise; f.type = 'bandpass'; f.Q.value = 2; f.frequency.setValueAtTime(600, t); f.frequency.exponentialRampToValueAtTime(2400, t + 0.1);
+    g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(0.18, t + 0.05); g.gain.exponentialRampToValueAtTime(0.0001, t + 0.12);
+    s.connect(f).connect(g).connect(c.destination); s.start(t, Math.random()); s.stop(t + 0.13);
+  },
   ping(freq, dur = 0.5, vol = 0.08) {
     if (!this.ctx) return;
     const c = this.ctx, o = c.createOscillator(), g = c.createGain();

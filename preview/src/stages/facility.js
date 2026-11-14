@@ -6,6 +6,7 @@ import { hud } from '../hud.js';
 import { input } from '../input.js';
 import { createStealth, stealthHud } from '../stealth.js';
 import { createOnFoot } from '../onfoot.js';
+import { applyPose } from '../core.js';
 import { buildBike } from '../vehicles.js';
 
 export async function create(ctx) {
@@ -254,7 +255,7 @@ export async function create(ctx) {
     },
     animate(dt, time) {
       const slow = phase === 'theft' ? 0.35 : 1;
-      player.mixer.update(dt * slow); stealth.animate(dt * slow);
+      player.mixer.update(dt * slow); applyPose(player, dt * slow); stealth.animate(dt * slow);
       rings.forEach((r, i) => { r.rotation.x = time * (0.7 + i * 0.4); r.rotation.y = time * (0.5 + i * 0.3); });
       if (M.alarm) {
         const p = 0.5 + 0.5 * Math.sin(time * 6);

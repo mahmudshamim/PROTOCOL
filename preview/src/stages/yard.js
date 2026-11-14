@@ -6,6 +6,7 @@ import { hud } from '../hud.js';
 import { input } from '../input.js';
 import { createStealth, stealthHud } from '../stealth.js';
 import { createOnFoot } from '../onfoot.js';
+import { applyPose } from '../core.js';
 import { buildBike, buildCar } from '../vehicles.js';
 
 const COLORS = [0x7a2e22, 0x24445c, 0x3d4a2e, 0x5c4a24, 0x8a5a1c, 0x2b4a4a, 0x4a2b3d];
@@ -160,7 +161,7 @@ export async function create(ctx) {
       foot.cam(0, true);
     },
     update(dt) { if (phase === 'play') play(dt); else if (phase === 'enter') enterCar(dt); },
-    animate(dt) { player.mixer.update(dt); stealth.animate(dt); setFocus(player.root.position); },
+    animate(dt) { player.mixer.update(dt); applyPose(player, dt); stealth.animate(dt); setFocus(player.root.position); },
     dispose() { audio.siren(false); audio.engine(0, 0); W.dispose(); },
     debug: () => ({ level: stealth.level(), modes: stealth.guards.map((g) => (g.down ? 'down' : g.active ? g.mode : 'off')), cams: stealth.cams.map((c) => Math.round(c.aw * 100)) }),
   };

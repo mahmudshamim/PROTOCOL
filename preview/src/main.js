@@ -109,6 +109,6 @@ function renderer_loop() {
   }
   if (phase !== 'pause') stage.animate(dt, time);
   hud.update(dt, stage.focus);
-  render();
+  render(dt);
   input.endFrame();
 }
