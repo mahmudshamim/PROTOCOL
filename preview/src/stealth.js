@@ -77,7 +77,7 @@ export function createStealth(world, opts) {
     const moving = player.speed > 0.2;
     if (vis) {
       const motion = player.speed > 4 ? 1.7 : player.sneak ? (moving ? 0.5 : 0.3) : moving ? 1 : 0.7;
-      let gain = 1.5 * (1 - d / RANGE) * (isLit(pp) ? 1 : 0.4) * motion * (ang < HALF / 2 ? 1 : 0.5);
+      let gain = 1.15 * (1 - d / RANGE) * (isLit(pp) ? 1 : 0.35) * motion * (ang < HALF / 2 ? 1 : 0.5);
       if (d < 3.5) gain = Math.max(gain, 2.5);
       g.aw += gain * dt; g.last.copy(pp);
     } else if (g.mode !== 'chase') g.aw -= 0.18 * dt;

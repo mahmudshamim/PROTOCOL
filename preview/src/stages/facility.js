@@ -69,7 +69,7 @@ export async function create(ctx) {
 
   // cover: containers, crates, real props
   const colors = [0x7a2e22, 0x24445c, 0x3d4a2e, 0x5c4a24, 0x2b2b30];
-  [[-34, 14, 0], [-22, 2, 1], [-40, -6, 0], [26, 12, 1], [38, -2, 0], [30, -20, 1], [-30, -26, 0], [-48, 20, 1], [14, 18, 0], [46, 16, 1], [-12, 12, 1]].forEach(([x, z, r], i) => {
+  [[-34, 14, 0], [-22, 2, 1], [-40, -6, 0], [26, 12, 1], [38, -2, 0], [30, -20, 1], [-30, -26, 0], [-48, 20, 1], [14, 18, 0], [46, 16, 1], [-12, 12, 1], [-7, 4, 1], [7, 2, 1]].forEach(([x, z, r], i) => {
     const [w, d] = r ? [2.5, 6.2] : [6.2, 2.5];
     W.box(x - w / 2, z - d / 2, x + w / 2, z + d / 2, 0, 2.7, new THREE.MeshStandardMaterial({ color: colors[i % 5], metalness: 0.6, roughness: 0.55 }));
   });
@@ -86,7 +86,7 @@ export async function create(ctx) {
 
   // lamps: lit zones
   const lamps = [];
-  for (const [x, z] of [[-9, 22], [9, -9], [-30, 6], [34, 6]]) {
+  for (const [x, z] of [[-24, 20], [9, -9], [-30, 6], [34, 6]]) {
     W.mesh(new THREE.CylinderGeometry(0.1, 0.14, 8), A.metal, x, 4, z);
     const head = W.mesh(new THREE.BoxGeometry(1.2, 0.15, 0.5), glow(0xffd9a0, 3), x, 8, z, false);
     const s = new THREE.SpotLight(0xffd0a0, 260, 34, 0.75, 0.7, 1.6); s.position.set(x, 8, z); s.target.position.set(x, 0, z); W.add(s); W.add(s.target);
@@ -121,15 +121,15 @@ export async function create(ctx) {
   const stealth = createStealth(W, {
     player, nav: NAV, isLit,
     guards: [
-      { wps: [[-10, 21], [10, 21]] },
+      { wps: [[40, 20], [40, -20]] }, // east yard, away from the gate
       { wps: [[-30, 9], [30, 9], [30, -6], [-30, -6]] },
-      { wps: [[-7, -11], [7, -11]] },
+      { wps: [[-16, -10], [16, -10]] }, // front of the building: long route leaves gaps at the door
       { wps: [[-2, -33], [16, -33], [16, -42], [-2, -42]] },
       { wps: [[-52, -22], [-52, 16]] },
       { wps: [[16, -27.5]], face: Math.PI / 2, control: true },
     ],
     cameras: [
-      { x: 6.5, z: 31, y: 4.2, yaw: 0.25, sweep: 0.5, period: 9, pole: true },
+      { x: 11, z: 26, y: 4.2, yaw: Math.PI / 2, sweep: 0.4, period: 9, pole: true }, // watches the east yard, not the gate
       { x: -19.5, z: -14.4, y: 6, yaw: 0.35, sweep: 0.6 },
       { x: 2.6, z: -14.4, y: 4.3, yaw: -0.1, sweep: 0.5 },
       { x: -19.2, z: -44, y: 6, yaw: 0.75, sweep: 0.45 },
@@ -157,7 +157,7 @@ export async function create(ctx) {
   const buttons = () => input.setButtons([{ a: 'interact', label: 'ACT' }, { a: 'takedown', label: 'GRAB' }, { a: 'sprint', label: 'RUN' }, { a: 'sneak', label: 'SNEAK' }, { a: 'throw', label: 'THROW' }]);
 
   function objective() {
-    hud.objective(M.stolen ? 'Get out. Reach the motorcycle beyond the west fence.' : doorSealed ? 'Main door is sealed. Use the east side door, or force the main door (loud).' : 'Get inside and steal the device from the lab. The gate is watched; the west fence is cut.');
+    hud.objective(M.stolen ? 'Get out. Reach the motorcycle beyond the west fence.' : doorSealed ? 'Main door is sealed. Use the east side door, or force the main door (loud).' : 'Get inside and steal the device from the lab. Walk in through the gate, or use the cut in the west fence.');
     const pp = player.root.position, outside = pp.z > 30 || pp.x < -60;
     if (M.stolen) hud.marker(BIKE.clone().setY(1), 'BIKE');
     else if (doorSealed) hud.marker(SIDE_DOOR, 'SIDE DOOR');
@@ -242,7 +242,7 @@ export async function create(ctx) {
   return {
     world: W,
     get focus() { return phase === 'mount' ? bike.root.position : player.root.position; },
-    enter() { if (!M.stolen && !M.alarm) hud.note('SABLE: GATE HAS A CAMERA AND A GUARD. THE WEST FENCE IS CUT — QUIETER WAY IN.', 7); phase = 'play'; hud.caption(''); hud.secLabel('SECURITY'); hud.bars(false); hud.show(true); hud.health(M.health); buttons(); input.showTouch(true); foot.cam(0, true); objective(); },
+    enter() { if (!M.stolen && !M.alarm) hud.note('SABLE: THE GATE IS CLEAR RIGHT NOW. WATCH THE GUARD BY THE BUILDING. THE WEST FENCE IS CUT TOO.', 7); phase = 'play'; hud.caption(''); hud.secLabel('SECURITY'); hud.bars(false); hud.show(true); hud.health(M.health); buttons(); input.showTouch(true); foot.cam(0, true); objective(); },
     menu(time) { camera.position.set(Math.sin(time * 0.05) * 90, 30, 80 + Math.cos(time * 0.05) * 20); camera.lookAt(0, 4, -25); },
     intro,
     update(dt) {
