@@ -24,12 +24,12 @@ export class Road {
    * features: { rocks: [[d, lat]], drifts: [[d, len, lat, width]], underpasses: [d], canyons: [[d0, d1]],
    *             exits: [d], gates: [[d, gapLat]] }
    */
-  constructor(world, { width = 9, lanes = 2, features = {}, seed = 7 } = {}) {
-    Object.assign(this, { world, width, half: width / 2, lanes, f: features, seed });
+  constructor(world, { width = 9, lanes = 2, features = {}, seed = 7, startAt0 = false } = {}) {
+    Object.assign(this, { world, width, half: width / 2, lanes, f: features, seed, startAt0 });
     this.mat = new THREE.MeshStandardMaterial({ map: roadTexture(lanes), roughness: 0.85, metalness: 0 });
     this.chunks = new Map(); this.obstacles = []; this.exitState = new Map();
     const sand = new THREE.Mesh(new THREE.PlaneGeometry(1200, 1200), A.sand);
-    sand.rotation.x = -Math.PI / 2; sand.receiveShadow = true; sand.userData.shared = false; world.add(sand);
+    sand.rotation.x = -Math.PI / 2; sand.position.y = startAt0 ? -0.03 : 0; sand.receiveShadow = true; sand.userData.shared = false; world.add(sand);
     sand.geometry.attributes.uv.array.forEach((_, i, a) => { a[i] *= 1200 / 900; });
     this.sand = sand;
     this.mesas = [];
@@ -56,9 +56,9 @@ export class Road {
   /** Keep chunks around d loaded; re-centre the sand and the distant mesas. */
   update(focus) {
     const d = -focus.z, first = Math.floor((d - 150) / CHUNK), last = Math.floor((d + 520) / CHUNK);
-    for (let i = first; i <= last; i++) if (!this.chunks.has(i)) this.chunks.set(i, this.build(i));
+    for (let i = first; i <= last; i++) if (!this.chunks.has(i) && !(this.startAt0 && i < 0)) this.chunks.set(i, this.build(i));
     for (const [i, c] of this.chunks) if (i < first - 1 || i > last + 1) { this.drop(c); this.chunks.delete(i); }
-    this.sand.position.set(Math.round(focus.x / 100) * 100, 0, Math.round(focus.z / 100) * 100);
+    this.sand.position.set(Math.round(focus.x / 100) * 100, this.sand.position.y, Math.round(focus.z / 100) * 100);
     for (const { m, a, r } of this.mesas) m.position.set(focus.x + Math.sin(a) * r, 12, focus.z + Math.cos(a) * r);
   }
   drop(c) {

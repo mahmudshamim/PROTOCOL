@@ -15,12 +15,14 @@ export async function create(ctx) {
 
   // ground, roads, mesas
   const ground = W.mesh(new THREE.PlaneGeometry(900, 900), A.sand, 0, 0, 0, false); ground.rotation.x = -Math.PI / 2;
-  for (const [x0, z0, x1, z1] of [[-5, 28, 5, 260], [-58, -13, 58, 28]]) {
+  for (const [x0, z0, x1, z1] of [[-5, 28, 5, 220], [-58, -13, 58, 28]]) {
     const r = W.mesh(new THREE.PlaneGeometry(x1 - x0, z1 - z0), A.asphalt, (x0 + x1) / 2, 0.02, (z0 + z1) / 2, false); r.rotation.x = -Math.PI / 2;
   }
+  const mesas = [];
   for (let i = 0; i < 14; i++) {
     const a = i * 0.47 + 0.3, d = 260 + (i % 4) * 45;
-    W.mesh(new THREE.CylinderGeometry(22 + (i % 3) * 14, 40 + (i % 5) * 12, 26 + (i % 4) * 14, 7), A.rock, Math.sin(a) * d, 12, Math.cos(a) * d - 60, false).rotation.y = i;
+    if (Math.abs(Math.sin(a) * d) < 130 && Math.cos(a) * d - 60 > 40) continue; // keep the road south clear
+    const mesa = W.mesh(new THREE.CylinderGeometry(22 + (i % 3) * 14, 40 + (i % 5) * 12, 26 + (i % 4) * 14, 7), A.rock, Math.sin(a) * d, 12, Math.cos(a) * d - 60, false); mesa.rotation.y = i; mesas.push(mesa);
   }
 
   // building x[-20,20] z[-45,-15]
@@ -110,7 +112,7 @@ export async function create(ctx) {
   const bike = buildBike(); bike.root.position.copy(BIKE); bike.root.rotation.y = 0.08; W.add(bike.root); // facing south, down the track
   const HIGHWAY = new THREE.Vector3(0, 1.5, 230), HIGHWAY_Z = 220;
   for (const x of [-6, 6]) { W.mesh(new THREE.BoxGeometry(0.15, 2.2, 0.15), A.dark, x, 1.1, HIGHWAY_Z, false); W.mesh(new THREE.BoxGeometry(1.4, 0.6, 0.08), glow(0x6fd0ff, 2), x, 2.3, HIGHWAY_Z, false); }
-  let ride = null; // the motorcycle once you are on it
+  let ride = null, highwayStage = null, self = null; // the motorcycle once you are on it; the highway, built ahead
   // dirt track from the bike round the fence corner to the road
   const CORNER = new THREE.Vector3(-66, 1.5, 40);
   const dirt = new THREE.MeshStandardMaterial({ color: 0x6b4a32, roughness: 1 });
@@ -187,6 +189,7 @@ export async function create(ctx) {
       bike.body.add(player.root); player.root.position.set(0, 0.52, -0.32); player.root.rotation.set(0, 0, 0); anim(player, 'Idle');
       input.setButtons([{ a: 'brake', label: 'BRAKE' }]); hud.prompt(null); hud.bar(null); hud.health(null); hud.foe(null); hud.secLabel('SPEED');
       hud.note('RIDE SOUTH TO THE HIGHWAY', 4);
+      highwayStage = null; ctx.preload('highway', { attach: { x: 0, z: HIGHWAY_Z, prev: self } }).then((hw) => (highwayStage = hw));
     }
   }
 
@@ -259,7 +262,14 @@ export async function create(ctx) {
     hud.objective('Ride south to the highway.'); hud.marker(goal, goal === CORNER ? 'TRACK' : 'HIGHWAY');
     hud.security(`${Math.round(Math.abs(ride.speed) * 3.6)} KM/H`, '#e8e8e8');
     hud.flags('ON THE BIKE');
-    if (ride.pos.z > HIGHWAY_Z) { phase = 'done'; M.carrySpeed = Math.max(10, ride.speed); audio.siren(false); ctx.next('highway'); }
+    camera.fov = lerp(camera.fov, 58 + ride.speed * 0.3, Math.min(1, dt * 3)); camera.updateProjectionMatrix();
+    highwayStage?.preview(dt, ride.pos);
+    if (ride.pos.z > HIGHWAY_Z && highwayStage) { // onto the highway: same world, same bike pose, no cut
+      phase = 'done'; audio.siren(false);
+      highwayStage.takeOver({ pos: ride.pos.clone(), h: ride.h, vh: ride.vh, speed: ride.speed, steer: ride.steer, lean: bike.body.rotation.z });
+      bike.root.visible = false; for (const m of mesas) m.visible = false;
+      ctx.swap(highwayStage);
+    }
   }
 
   function intro(time) {
@@ -271,7 +281,8 @@ export async function create(ctx) {
     return false;
   }
 
-  return {
+  let disposed = false;
+  return self = {
     world: W,
     get focus() { return phase === 'mount' || phase === 'done' ? bike.root.position : player.root.position; },
     enter() { if (!M.stolen && !M.alarm) hud.note('SABLE: ONE GUARD ON THE GATE. WAIT TILL HE LOOKS AWAY, OR TAKE HIM FROM BEHIND. THE WEST FENCE IS CUT TOO.', 7); phase = 'play'; hud.caption(''); hud.secLabel('SECURITY'); hud.bars(false); hud.show(true); hud.health(M.health); buttons(); input.showTouch(true); foot.cam(0, true); objective(); if (params.has('mount')) interact(); },
@@ -293,7 +304,7 @@ export async function create(ctx) {
       }
       setFocus(this.focus);
     },
-    dispose() { audio.siren(false); audio.engine(0, 0); W.dispose(); },
+    dispose() { if (disposed) return; disposed = true; audio.siren(false); W.dispose(); },
     debug: () => ({ level: stealth.level(), modes: stealth.guards.map((g) => (g.down ? 'down' : g.mode)), cams: stealth.cams.map((c) => Math.round(c.aw * 100)) }),
   };
 }

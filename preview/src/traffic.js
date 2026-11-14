@@ -15,7 +15,7 @@ export function createTraffic(world, road, { count = 8, lane = 2.3, seed = 5, sa
     c.dir = R() < 0.55 ? -1 : 1;
     c.lat = c.dir > 0 ? lane : -lane;
     c.speed = c.dir > 0 ? sameSpeed[0] + R() * (sameSpeed[1] - sameSpeed[0]) : oncomingSpeed[0] + R() * (oncomingSpeed[1] - oncomingSpeed[0]);
-    c.d = fromD + (first ? 80 + R() * 600 : 380 + R() * 260);
+    c.d = Math.max(fromD, 0) + (first ? 80 + R() * 600 : 380 + R() * 260);
   }
   return {
     cars,
@@ -23,7 +23,7 @@ export function createTraffic(world, road, { count = 8, lane = 2.3, seed = 5, sa
     update(dt, playerD) {
       for (const c of cars) {
         c.d += c.dir * c.speed * dt;
-        if (c.d < playerD - 90 || c.d > playerD + 700) respawn(c, playerD, false);
+        if (c.d < Math.max(playerD - 90, 0) || c.d > playerD + 700) respawn(c, playerD, false);
         const p = road.point(c.d, c.lat); c.pos.set(p.x, 0, p.z);
         c.m.root.rotation.y = road.heading(-c.d) + (c.dir > 0 ? 0 : Math.PI);
         for (const w of c.m.wheelSpin) w.rotation.x += (c.speed * dt) / c.m.r;

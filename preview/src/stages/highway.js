@@ -10,11 +10,17 @@ import { buildBike, buildPolice, Vehicle, collide } from '../vehicles.js';
 
 const GOAL = 2400;
 
-export async function create(ctx) {
-  setTimeOfDay(0.5);
+/**
+ * opts.attach = { x, z, prev }: build the highway so it starts exactly at world point (x, z) on the
+ * station road, heading south, in the same world as the station (prev is disposed once far behind).
+ */
+export async function create(ctx, opts = {}) {
+  const attach = opts.attach ?? null;
+  let prev = attach?.prev ?? null;
+  if (!attach) setTimeOfDay(0.5);
   const W = new World();
   const road = new Road(W, {
-    width: 9, lanes: 2, seed: 3,
+    width: 9, lanes: 2, seed: 3, startAt0: !!attach,
     features: {
       rocks: [[420, -2], [610, 2.4], [980, -1.5], [1330, 1.8], [1720, -2.6], [2050, 0.5]],
       drifts: [[300, 40, 1, 6], [760, 50, -1.5, 7], [1180, 40, 0.5, 9], [1560, 60, 2, 6], [1900, 45, -1, 8]],
@@ -23,7 +29,13 @@ export async function create(ctx) {
   });
   const bikeMesh = buildBike(); W.add(bikeMesh.root);
   const bike = new Vehicle(bikeMesh, { maxSpeed: 44, accel: 13, brake: 26, turn: 2.3, grip: 7, drag: 0.05, radius: 0.8 });
-  bike.place(road.cx(-5), -5, road.heading(-5), M.carrySpeed ?? 12); delete M.carrySpeed;
+  bike.place(road.cx(-5), -5, road.heading(-5), 12);
+  // frame: rotate the whole highway 180° and move its start onto the station road's end
+  if (attach) { W.group.rotation.y = Math.PI; W.group.position.set(attach.x + road.cx(0), 0, attach.z); bikeMesh.root.visible = false; for (const m of road.mesas) m.m.visible = false; }
+  W.group.updateMatrixWorld(true);
+  const toWorld = (v, out = new THREE.Vector3()) => out.copy(v).applyMatrix4(W.group.matrixWorld);
+  const toLocal = (v, out = new THREE.Vector3()) => W.group.worldToLocal(out.copy(v));
+  const wFocus = new THREE.Vector3(), wTmp = new THREE.Vector3();
   const rider = human(bikeMesh.body, 0x3a3a44); rider.root.position.set(0, 0.52, -0.32);
   const lamp = new THREE.SpotLight(0xfff2d8, 220, 70, 0.42, 0.5, 1.4); lamp.position.set(0, 1.1, 0.6); bikeMesh.body.add(lamp);
   lamp.target.position.set(0, 0, 18); bikeMesh.body.add(lamp.target);
@@ -103,14 +115,22 @@ export async function create(ctx) {
     bike.forward(fwd);
     const back = 5.5 + bike.speed * 0.05;
     camPos.set(bike.pos.x - fwd.x * back, 2.1 + bike.speed * 0.012, bike.pos.z - fwd.z * back);
-    camera.position.lerp(camPos, snap ? 1 : Math.min(1, dt * 6));
-    look.set(bike.pos.x + fwd.x * 6, 1.2, bike.pos.z + fwd.z * 6); camera.lookAt(look);
+    camera.position.lerp(toWorld(camPos, wTmp), snap ? 1 : Math.min(1, dt * 6));
+    look.set(bike.pos.x + fwd.x * 6, 1.2, bike.pos.z + fwd.z * 6); camera.lookAt(toWorld(look, wTmp));
     camera.fov = lerp(camera.fov, 58 + bike.speed * 0.3, Math.min(1, dt * 3)); camera.updateProjectionMatrix();
   }
 
   return {
     world: W,
-    get focus() { return bike.pos; },
+    get focus() { return toWorld(bike.pos, wFocus); },
+    /** While you are still riding out of the station: keep traffic moving and the road built. */
+    preview(dt, worldPos) { const lp = toLocal(worldPos); road.update(lp); traffic.update(dt, -lp.z); },
+    /** Take over the station's bike exactly where it is (world position and heading). */
+    takeOver({ pos, h, vh, speed, steer, lean }) {
+      const lp = toLocal(pos);
+      bike.place(lp.x, lp.z, h + W.group.rotation.y, speed); bike.vh = vh + W.group.rotation.y; bike.steer = steer;
+      bikeMesh.body.rotation.z = lean; bikeMesh.root.visible = true; for (const m of road.mesas) m.m.visible = true;
+    },
     enter() {
       saveCheckpoint('highway');
       hud.show(true); hud.bars(false); hud.marker(null); hud.health(null); hud.foe(null); hud.bar(null); hud.prompt(null);
@@ -131,12 +151,14 @@ export async function create(ctx) {
       road.update(bike.pos);
       chaseCam(dt);
       const d = -bike.pos.z;
+      if (attach) setTimeOfDay(clamp(d / 2400, 0, 0.5)); // dusk fades toward night as you ride
+      if (prev && d > 500) { prev.dispose(); prev = null; } // the station is far behind now
       hud.objective(`Reach the container yard · ${Math.max(0, (GOAL - d) / 1000).toFixed(1)} km`);
       hud.security(`${Math.round(Math.abs(bike.speed) * 3.6)} KM/H`, '#e8e8e8');
       hud.flags(`CRASHES · ${M.crashes} / 3<br>${road.inDrift(bike.pos) ? 'SAND ON THE ROAD' : Math.abs(road.lateral(bike.pos)) > road.half + 0.4 ? 'OFF ROAD' : 'ON ROAD'}`);
       audio.engine(clamp(Math.abs(bike.speed) / 44, 0, 1), phase === 'over' ? 0 : 1);
     },
-    animate(dt) { rider.mixer.update(dt); ridePose(rider, { lean: 0.3, hands: 0.4 }); setFocus(bike.pos); },
-    dispose() { audio.engine(0, 0); audio.sirenLevel(0); camera.fov = 55; camera.updateProjectionMatrix(); hud.secLabel('SECURITY'); W.dispose(); },
+    animate(dt) { rider.mixer.update(dt); ridePose(rider, { lean: 0.3, hands: 0.4 }); setFocus(toWorld(bike.pos, wFocus)); },
+    dispose() { prev?.dispose(); prev = null; audio.engine(0, 0); audio.sirenLevel(0); camera.fov = 55; camera.updateProjectionMatrix(); hud.secLabel('SECURITY'); W.dispose(); },
   };
 }

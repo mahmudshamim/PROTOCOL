@@ -15,6 +15,10 @@ let stage = null, phase = 'boot', switching = false, t = 0;
 
 const ctx = {
   next: (id) => goto(id),
+  /** Build a stage in the background without leaving the current one. */
+  preload: (id, opts) => STAGES[id].create(ctx, opts),
+  /** Switch to a preloaded stage on the same frame: no fade, the old stage stays in the scene. */
+  swap(next) { stage = next; next.enter(); },
   fail(title, text) {
     if (phase === 'over') return;
     phase = 'over'; input.unlock(); input.showTouch(false); hud.show(false); audio.siren(false); audio.engine(0, 0);
@@ -112,7 +116,7 @@ function togglePause(on) {
 
 // headless testing: ?sim=seconds advances the simulation before the first frame
 const sim = Number(params.get('sim') ?? 0);
-for (let i = 0; i < sim * 30 && phase === 'play'; i++) { stage.update(1 / 30, i / 30); stage.animate(1 / 30, i / 30); }
+for (let i = 0; i < sim * 30 && phase === 'play'; i++) { if (i % 15 === 0) await new Promise((r) => setTimeout(r, 0)); stage.update(1 / 30, i / 30); stage.animate(1 / 30, i / 30); }
 if (params.has('log')) console.log('STATE ' + JSON.stringify({ phase, M, end: $('endTitle').textContent, cam: stage.focus, dbg: stage.debug?.() }));
 
 const clock = new THREE.Clock();
