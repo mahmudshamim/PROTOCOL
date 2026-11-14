@@ -92,7 +92,7 @@ export async function create(ctx) {
     get focus() { return bike.pos; },
     enter() {
       saveCheckpoint('highway');
-      hud.show(true); hud.bars(false); hud.marker(null); hud.health(null); hud.bar(null); hud.prompt(null);
+      hud.show(true); hud.bars(false); hud.marker(null); hud.health(null); hud.foe(null); hud.bar(null); hud.prompt(null);
       hud.secLabel('SPEED');
       input.setButtons([{ a: 'brake', label: 'BRAKE' }]); input.showTouch(true);
       hud.note(chase ? 'THEY SAW THE BIKE LEAVE. EXPECT COMPANY.' : 'SABLE: CONTAINER YARD, TWO AND A HALF KLICKS. STAY ON THE ROAD.');

@@ -129,7 +129,7 @@ export async function create(ctx) {
       }
     }
     foot.cam(dt);
-    stealthHud(stealth);
+    stealthHud(stealth); hud.foe(stealth.foeBar());
     const p = player.root.position;
     let pr = null;
     if (p.distanceTo(DOOR) < 3) pr = { key: 'E', text: 'TAKE THE CAR', action: 'interact' };

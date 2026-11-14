@@ -3,7 +3,7 @@
 const fresh = () => ({
   alarm: false, alarmBeforeTheft: false, alarmCause: '',
   identified: false, described: false, bodyFound: false, cameraRec: false, lockdown: false,
-  takedowns: 0, stolen: false, health: 3, throws: 3,
+  takedowns: 0, stolen: false, health: 100, throws: 3,
   bikeSeen: false, crashes: 0, damage: 0,
   startTime: performance.now(),
 });
@@ -16,7 +16,7 @@ export function saveCheckpoint(stage) { checkpoint = { stage, m: structuredClone
 export function loadCheckpoint() {
   const start = M.startTime;
   Object.assign(M, structuredClone(checkpoint.m));
-  M.startTime = start; M.health = 3;
+  M.startTime = start; M.health = 100;
   return checkpoint.stage;
 }
 

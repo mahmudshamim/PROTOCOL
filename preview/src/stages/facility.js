@@ -190,10 +190,11 @@ export async function create(ctx) {
     foot.cam(dt, false, inside ? 7.2 : Infinity);
     // hud
     const p = player.root.position;
-    stealthHud(stealth);
+    stealthHud(stealth); hud.foe(stealth.foeBar());
     let pr = null;
     if (!M.stolen && p.distanceTo(DEVICE) < 2.4) pr = { key: 'E', text: 'TAKE THE DEVICE', action: 'interact' };
     else if (M.stolen && p.distanceTo(BIKE) < 2.8) pr = { key: 'E', text: 'RIDE', action: 'interact' };
+    else if (stealth.attackPrompt()?.text === 'FIGHT') pr = stealth.attackPrompt();
     else if (doorSealed && !M.stolen && p.distanceTo(DOOR_OUT) < 2.6) pr = { key: 'HOLD E', text: forceT > 0 ? `FORCING THE DOOR · ${Math.round((forceT / 2.5) * 100)}%` : 'FORCE THE DOOR (LOUD)', action: 'interact' };
     else if (!M.stolen && p.distanceTo(BIKE) < 3.5) pr = { key: '—', text: 'GETAWAY BIKE · STEAL THE DEVICE FIRST', action: null };
     else pr = stealth.attackPrompt();

@@ -4,7 +4,9 @@ import { input } from './input.js';
 
 const $ = (id) => document.getElementById(id);
 const v = new THREE.Vector3();
-let noteT = 0, marker = null, markerLabel = '';
+let noteT = 0, marker = null, markerLabel = '', foe = null;
+const pops = [];
+const toScreen = (p) => { v.copy(p).project(camera); return v.z > 1 ? null : [((v.x + 1) / 2) * innerWidth, ((1 - v.y) / 2) * innerHeight]; };
 
 export const hud = {
   show(on) { $('hud').style.display = on ? 'block' : 'none'; },
@@ -23,9 +25,20 @@ export const hud = {
   },
   flags(html) { $('flags').innerHTML = html; },
   marker(pos, label = '') { marker = pos; markerLabel = label; },
-  health(n, max = 3) {
-    $('health').innerHTML = n === null ? '' : '<b>' + '▮'.repeat(Math.max(0, n)) + '</b><span>' + '▮'.repeat(Math.max(0, max - n)) + '</span>';
+  health(n) {
+    $('health').style.display = n === null ? 'none' : 'flex';
+    if (n === null) return;
+    const v = Math.max(0, Math.round(n));
+    $('hpFill').style.width = v + '%'; $('hpFill').style.background = v > 50 ? '#7cff9a' : v > 25 ? '#ffd84a' : '#ff3b30';
+    $('hpNum').textContent = v;
   },
+  /** Floating number at a world position, e.g. damage. */
+  pop(pos, text, color) {
+    const el = document.createElement('div'); el.className = 'pop'; el.textContent = text; el.style.color = color;
+    $('pops').appendChild(el); pops.push({ el, pos: pos.clone(), t: 0 });
+  },
+  /** Health bar above a guard, or null to hide. */
+  foe(info) { foe = info; },
   flash() {
     const f = $('flash'); f.style.transition = 'none'; f.style.opacity = 0.5;
     requestAnimationFrame(() => requestAnimationFrame(() => { f.style.transition = 'opacity .7s'; f.style.opacity = 0; }));
@@ -46,6 +59,14 @@ export const hud = {
   hideEnd() { $('end').style.display = 'none'; },
   update(dt, from) {
     noteT -= dt; if (noteT <= 0) $('note').textContent = '';
+    for (let i = pops.length - 1; i >= 0; i--) {
+      const p = pops[i]; p.t += dt; const s = toScreen(p.pos);
+      if (p.t > 1.1 || !s) { p.el.remove(); pops.splice(i, 1); continue; }
+      p.el.style.left = s[0] + 'px'; p.el.style.top = s[1] - p.t * 50 + 'px'; p.el.style.opacity = 1 - p.t / 1.1;
+    }
+    const fb = $('foe'), fs = foe && toScreen(foe.pos);
+    fb.style.display = fs ? 'block' : 'none';
+    if (fs) { fb.style.left = fs[0] + 'px'; fb.style.top = fs[1] + 'px'; $('foeFill').style.width = Math.max(0, foe.frac * 100) + '%'; }
     const m = $('marker');
     if (!marker) { m.style.display = 'none'; return; }
     m.style.display = 'block';

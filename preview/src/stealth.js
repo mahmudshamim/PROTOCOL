@@ -132,8 +132,7 @@ export function createStealth(world, opts) {
           if (g.punchT <= 0 && g.stun <= 0) {
             g.punchT = 1.1 + Math.random() * 0.4; audio.burst(0.08, 0.2, 900);
             if (Math.random() < 0.3) {
-              M.health--; hud.flash(); hud.health(M.health); audio.burst(0.2, 0.3, 400);
-              if (M.health <= 0) return opts.onCapture('They beat you down and cuffed you.');
+              if (hurt(10)) return opts.onCapture('They beat you down and cuffed you.');
             }
           }
         } else if (g.stun <= 0) walkTo(g, world.steer(gp, vis ? pp : g.last, nav), 4.7, dt);
@@ -144,8 +143,7 @@ export function createStealth(world, opts) {
             audio.burst(0.15, 0.22, 2200);
             const hit = 0.14 + (isLit(pp) ? 0.12 : 0) + (d < 8 ? 0.12 : 0) - (player.speed > 4 ? 0.08 : 0);
             if (Math.random() < hit) {
-              M.health--; hud.flash(); hud.health(M.health); audio.burst(0.25, 0.3, 500);
-              if (M.health <= 0) return opts.onCapture('You were shot down before you could get clear.');
+              if (hurt(d < 8 ? 16 : 12)) return opts.onCapture('You were shot down before you could get clear.');
             }
           }
         }
@@ -184,6 +182,15 @@ export function createStealth(world, opts) {
 
   const canTakedown = (g) => g.active && !g.down && g.mode !== 'chase';
   const canFight = (g) => g.active && !g.down;
+  const headPos = (o) => o.root.position.clone().setY(2.05);
+  /** Damage the player. Returns true when health runs out. */
+  function hurt(amount) {
+    M.health = Math.max(0, M.health - amount); calmT = 0;
+    hud.flash(); hud.health(M.health); audio.burst(0.22, 0.3, 450);
+    hud.pop(headPos(player), `-${amount}`, '#ff5a4a');
+    return M.health <= 0;
+  }
+  let lastHit = null, lastHitT = 0;
   let attackCd = 0, calmT = 0;
   function knockOut(g, text) {
     g.down = true; g.radio = null; g.mixer.stopAllAction(); g.model.rotation.x = -Math.PI / 2; g.model.position.y = 0.25; g.cone.visible = false;
@@ -203,7 +210,8 @@ export function createStealth(world, opts) {
       attackCd = Math.max(0, attackCd - dt);
       // health comes back once nobody has been after you for a while
       calmT = guards.some((g) => g.active && !g.down && g.mode === 'chase') ? 0 : calmT + dt;
-      if (calmT > 12 && M.health < 3) { M.health++; calmT = 0; hud.health(M.health); }
+      if (calmT > 5 && M.health < 100) { M.health = Math.min(100, M.health + 12 * dt); hud.health(M.health); }
+      lastHitT = Math.max(0, lastHitT - dt);
     },
     animate(dt) { for (const g of guards) if (g.active && !g.down) g.mixer.update(dt); },
     nearest,
@@ -217,7 +225,7 @@ export function createStealth(world, opts) {
         return true;
       }
       const g = nearest(3.2, canFight); if (!g) return false;
-      attackCd = 0.32; g.hp = (g.hp ?? 2) - 1; g.stun = 1.0; g.punchT = Math.max(g.punchT ?? 0, 1.2);
+      attackCd = 0.32; g.hp = (g.hp ?? 100) - 50; g.stun = 1.0; lastHit = g; lastHitT = 3; hud.pop(headPos(g), '-50', '#ffd27a'); g.punchT = Math.max(g.punchT ?? 0, 1.2);
       if (g.radio !== null) g.radio += 1.0; // a punch interrupts his radio call
       const p = player.root.position, gp = g.root.position, d = Math.max(0.01, gp.distanceTo(p));
       if (d > 1.2) { p.x += ((gp.x - p.x) / d) * (d - 1.1); p.z += ((gp.z - p.z) / d) * (d - 1.1); world.resolve(p); } // lunge in
@@ -228,11 +236,16 @@ export function createStealth(world, opts) {
       if (g.hp <= 0) knockOut(g, g.radio === null && !M.alarm ? 'GUARD DOWN — LOUD, BUT HE NEVER GOT ON THE RADIO' : 'GUARD DOWN — THAT FIGHT WAS LOUD');
       return true;
     },
+    /** The guard to show a health bar for: the last one hit, or the one in reach. */
+    foeBar() {
+      const g = (lastHitT > 0 && lastHit && !lastHit.down) ? lastHit : nearest(3.2, (x) => canFight(x) && x.mode === 'chase');
+      return g ? { pos: headPos(g), frac: (g.hp ?? 100) / 100 } : null;
+    },
     /** Prompt for the F key, or null. */
     attackPrompt() {
       if (nearest(1.9)) return { key: 'F', text: 'TAKEDOWN', action: 'takedown' };
       const g = nearest(3.2, canFight);
-      return g ? { key: 'F', text: `FIGHT · ${'●'.repeat(g.hp ?? 2)}`, action: 'takedown' } : null;
+      return g ? { key: 'F', text: 'FIGHT', action: 'takedown' } : null;
     },
     /** A distraction or loud sound: guards in range go and look. */
     noise(pos, radius) {

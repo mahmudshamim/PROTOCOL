@@ -194,7 +194,7 @@ export async function create(ctx) {
     get focus() { return car.pos; },
     enter() {
       saveCheckpoint('pursuit');
-      hud.show(true); hud.bars(false); hud.marker(null); hud.health(null); hud.prompt(null); hud.secLabel('HEAT');
+      hud.show(true); hud.bars(false); hud.marker(null); hud.health(null); hud.foe(null); hud.prompt(null); hud.secLabel('HEAT');
       input.setButtons([{ a: 'brake', label: 'DRIFT' }]); input.showTouch(true);
       hud.note({ none: 'SABLE: NOBODY KNOWS ABOUT THE CAR. DRIVE CLEAN.', light: 'SABLE: PATROLS ARE SWEEPING THE HIGHWAY. LOSE THEM.', medium: 'SABLE: THEY HAVE YOUR DESCRIPTION. ROADBLOCK AHEAD.', heavy: 'SABLE: EVERYTHING THEY HAVE, INCLUDING A HELICOPTER. USE THE UNDERPASSES.' }[strength], 6);
       road.update(car.pos); chaseCam(0, true);
