@@ -86,6 +86,7 @@ $('tfull').addEventListener('pointerdown', (e) => e.stopPropagation());
 $('tfull').addEventListener('pointerup', (e) => { e.stopPropagation(); goFullscreen(); });
 $('pauseFull').addEventListener('click', () => goFullscreen());
 $('iosHint').addEventListener('click', () => ($('iosHint').style.display = 'none'));
+if (params.has('ioshint')) $('iosHint').style.display = 'flex'; // test: show the iPhone hint
 
 // ---------- boot ----------
 await loadAssets();

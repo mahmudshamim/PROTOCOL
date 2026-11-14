@@ -93,8 +93,14 @@
   #tfull { position: absolute; top: max(14px, env(safe-area-inset-top)); left: calc(50% + 34px); width: 44px; height: 44px; font-size: 18px; }
   .fs #tfull, .standalone #tfull { display: none; }
   .fsbtn { margin-top: 14px; }
-  #iosHint { display: none; position: fixed; inset: 0; z-index: 30; background: #000e; align-items: center; justify-content: center; text-align: center; padding: 30px; line-height: 2; letter-spacing: .12em; font-size: 13px; pointer-events: auto; }
+  #iosHint { display: none; position: fixed; inset: 0; z-index: 30; background: #000e; align-items: center; justify-content: center; padding: 20px; font-size: 13px; pointer-events: auto; overflow: auto; }
+  #iosHint .box { max-width: 520px; text-align: left; }
+  #iosHint h3 { font-weight: 300; letter-spacing: .3em; font-size: 15px; margin: 0 0 14px; text-align: center; }
+  #iosHint ol { margin: 0; padding-left: 22px; line-height: 2.1; letter-spacing: .05em; }
   #iosHint b { color: #6fd0ff; font-weight: 400; }
+  #iosHint .ic { display: inline-block; border: 1px solid #6fd0ff88; border-radius: 4px; padding: 0 6px; color: #6fd0ff; }
+  #iosHint .why { opacity: .6; font-size: 11px; line-height: 1.6; letter-spacing: .04em; margin: 14px 0 18px; }
+  #iosHint .endbtn { display: block; text-align: center; }
   #tpause { position: absolute; top: max(14px, env(safe-area-inset-top)); left: 50%; transform: translateX(-50%); width: 44px; height: 44px; font-size: 13px; }
   .touch #flags { display: none; }
   .touch #prompt { bottom: 46vh; }
@@ -138,7 +144,16 @@
   <div class="by">A GAME BY<img src="/brand/mahmud-white.png" alt="Mahmud" /></div>
 </div>
 <div id="pause" class="layer"><h2>PAUSED</h2><div class="endbtn" id="pauseBtn">RESUME</div><div class="endbtn fsbtn" id="pauseFull">FULL SCREEN</div></div>
-<div id="iosHint">TO PLAY FULL SCREEN ON IPHONE<br>tap <b>Share</b> (the square with an arrow)<br>then <b>Add to Home Screen</b><br>and open PROTOCOL from your home screen.<br><br><b>TAP TO CLOSE</b></div>
+<div id="iosHint"><div class="box">
+  <h3>PLAY FULL SCREEN ON IPHONE</h3>
+  <ol>
+    <li>Tap <b>Share</b> <span class="ic">⬆︎</span> in Safari (top right, next to the address)</li>
+    <li>Choose <b>Add to Home Screen</b></li>
+    <li>Open <b>PROTOCOL</b> from your home screen</li>
+  </ol>
+  <p class="why">iPhone Safari does not let websites go full screen. From the home screen it opens like an app, with no address bar.</p>
+  <div class="endbtn">GOT IT</div>
+</div></div>
 <div id="end" class="layer"><h2 id="endTitle"></h2><p id="endText"></p><div id="endBtns"></div><div class="by">A GAME BY<img src="/brand/mahmud-white.png" alt="Mahmud" /></div></div>
 <div id="fade"></div>
 <div id="load" class="layer"><img src="/icon.svg" alt="" style="width:56px;margin-right:18px;opacity:.85" />LOADING</div>
