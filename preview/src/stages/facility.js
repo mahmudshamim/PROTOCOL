@@ -180,6 +180,7 @@ export async function create(ctx) {
     let pr = null;
     if (!M.stolen && p.distanceTo(DEVICE) < 2.4) pr = { key: 'E', text: 'TAKE THE DEVICE', action: 'interact' };
     else if (M.stolen && p.distanceTo(BIKE) < 2.8) pr = { key: 'E', text: 'RIDE', action: 'interact' };
+    else if (!M.stolen && p.distanceTo(BIKE) < 3.5) pr = { key: '—', text: 'GETAWAY BIKE · STEAL THE DEVICE FIRST', action: null };
     else if (stealth.nearest(1.9)) pr = { key: 'F', text: 'TAKEDOWN', action: 'takedown' };
     hud.prompt(pr);
     hud.flags(`${isLit(p) ? 'VISIBILITY · LIT' : 'VISIBILITY · SHADOW'}<br>${player.sneak ? 'MOVEMENT · SNEAK' : player.speed > 4 ? 'MOVEMENT · SPRINT (LOUD)' : 'MOVEMENT · WALK'}<br>STONES · ${M.throws}`);
