@@ -64,7 +64,7 @@ export async function create(ctx) {
     W.solids.push({ x0: Math.min(x0, x1) - 0.15, x1: Math.max(x0, x1) + 0.15, z0: Math.min(z0, z1) - 0.15, z1: Math.max(z0, z1) + 0.15 });
   }
   fence(-60, 30, -5, 30); fence(5, 30, 60, 30); fence(60, 30, 60, -60); fence(60, -60, -60, -60);
-  fence(-60, -60, -60, -5); fence(-60, -1, -60, 30);
+  fence(-60, -60, -60, -7); fence(-60, 1, -60, 30); // 8 m cut in the west fence
   W.box(7, 24, 10.5, 28, 0, 3, A.wall);
 
   // cover: containers, crates, real props
@@ -81,7 +81,7 @@ export async function create(ctx) {
   W.place(A.props.generator, 5, -12.5, 0.4); W.solids.push({ x0: 4.4, x1: 5.6, z0: -13, z1: -12 });
   W.place(A.props.covered_car, -18, 20, 0.3); W.solids.push({ x0: -19.2, x1: -16.8, z0: 17.8, z1: 22.2 }); W.blockers.push({ x0: -19.2, x1: -16.8, z0: 18.5, z1: 21.5 });
   W.place(A.props.searchlight, -4, 26, 2.6); W.place(A.props.searchlight, 4, 26, 0.5);
-  for (let i = 0; i < 4; i++) { W.place(A.props.barrier, -3 + i * 2, 36, 0); W.solids.push({ x0: -4 + i * 2, x1: -2 + i * 2, z0: 35.7, z1: 36.3 }); }
+  for (const x of [-4, 4]) { W.place(A.props.barrier, x, 36, 0); W.solids.push({ x0: x - 1, x1: x + 1, z0: 35.7, z1: 36.3 }); } // gap in the middle
   [[-90, 40, 1.4], [70, 60, 1], [-120, -40, 2], [110, -30, 1.6]].forEach(([x, z, s], i) => W.place(A.props.boulders, x, z, i, s));
 
   // lamps: lit zones
@@ -116,12 +116,12 @@ export async function create(ctx) {
   const player = foot.player;
   const carried = new THREE.Mesh(new THREE.IcosahedronGeometry(0.09, 1), coreMat); carried.position.set(0, 1.25, -0.22); carried.visible = false; player.root.add(carried);
   const carriedLight = new THREE.PointLight(0x38b6ff, 0, 7, 2); carriedLight.position.copy(carried.position); player.root.add(carriedLight);
-  const NAV = [[0, 33], [0, 24], [0, -12], [0, -18], [10, -27], [10, -33], [24, -36], [17, -36], [-24, -11], [24, -11], [-24, -49], [24, -49], [-64, -3], [-56, -3], [-42, 0], [42, 0], [0, 6], [-20, 20], [20, 20], [0, -24], [-8, -34], [10, -23.5], [15, -23.5]].map(([x, z]) => new THREE.Vector3(x, 0, z));
+  const NAV = [[0, 33], [0, 24], [0, -12], [0, -18], [10, -27], [10, -33], [24, -36], [17, -36], [-24, -11], [24, -11], [-24, -49], [24, -49], [-64, -3], [-56, -3], [-60, -3], [-42, 0], [42, 0], [0, 6], [-20, 20], [20, 20], [0, -24], [-8, -34], [10, -23.5], [15, -23.5]].map(([x, z]) => new THREE.Vector3(x, 0, z));
 
   const stealth = createStealth(W, {
     player, nav: NAV, isLit,
     guards: [
-      { wps: [[-8, 25], [8, 25]] },
+      { wps: [[-10, 21], [10, 21]] },
       { wps: [[-30, 9], [30, 9], [30, -6], [-30, -6]] },
       { wps: [[-7, -11], [7, -11]] },
       { wps: [[-2, -33], [16, -33], [16, -42], [-2, -42]] },
@@ -129,7 +129,7 @@ export async function create(ctx) {
       { wps: [[16, -27.5]], face: Math.PI / 2, control: true },
     ],
     cameras: [
-      { x: 6.5, z: 31, y: 4.2, yaw: 0, sweep: 0.55, pole: true },
+      { x: 6.5, z: 31, y: 4.2, yaw: 0.25, sweep: 0.5, period: 9, pole: true },
       { x: -19.5, z: -14.4, y: 6, yaw: 0.35, sweep: 0.6 },
       { x: 2.6, z: -14.4, y: 4.3, yaw: -0.1, sweep: 0.5 },
       { x: -19.2, z: -44, y: 6, yaw: 0.75, sweep: 0.45 },
@@ -147,7 +147,7 @@ export async function create(ctx) {
   if (afterTheft) { core.visible = false; carried.visible = true; carriedLight.intensity = 5; }
 
   let phase = 'play', t = 0, missingTimer = null, forceT = 0;
-  const DOOR_OUT = new THREE.Vector3(0, 0, -14.2), SIDE_DOOR = new THREE.Vector3(21.5, 1.5, -36);
+  const DOOR_OUT = new THREE.Vector3(0, 0, -14.2), SIDE_DOOR = new THREE.Vector3(21.5, 1.5, -36), FENCE_CUT = new THREE.Vector3(-60, 1.5, -3);
   function forceDoor() { // pry the sealed main door open: works, but loud
     doorSealed = false; door.visible = false;
     W.solids.splice(W.solids.indexOf(doorBox), 1); W.blockers.splice(W.blockers.indexOf(doorBox), 1);
@@ -157,8 +157,12 @@ export async function create(ctx) {
   const buttons = () => input.setButtons([{ a: 'interact', label: 'ACT' }, { a: 'takedown', label: 'GRAB' }, { a: 'sprint', label: 'RUN' }, { a: 'sneak', label: 'SNEAK' }, { a: 'throw', label: 'THROW' }]);
 
   function objective() {
-    hud.objective(M.stolen ? 'Get out. Reach the motorcycle beyond the west fence.' : doorSealed ? 'Main door is sealed. Use the east side door, or force the main door (loud).' : 'Get inside the station and steal the device from the lab.');
-    hud.marker(M.stolen ? BIKE.clone().setY(1) : doorSealed ? SIDE_DOOR : null, M.stolen ? 'BIKE' : 'SIDE DOOR');
+    hud.objective(M.stolen ? 'Get out. Reach the motorcycle beyond the west fence.' : doorSealed ? 'Main door is sealed. Use the east side door, or force the main door (loud).' : 'Get inside and steal the device from the lab. The gate is watched; the west fence is cut.');
+    const pp = player.root.position, outside = pp.z > 30 || pp.x < -60;
+    if (M.stolen) hud.marker(BIKE.clone().setY(1), 'BIKE');
+    else if (doorSealed) hud.marker(SIDE_DOOR, 'SIDE DOOR');
+    else if (outside) hud.marker(FENCE_CUT, 'FENCE CUT');
+    else hud.marker(null);
   }
 
   function interact() {
@@ -238,7 +242,7 @@ export async function create(ctx) {
   return {
     world: W,
     get focus() { return phase === 'mount' ? bike.root.position : player.root.position; },
-    enter() { phase = 'play'; hud.caption(''); hud.secLabel('SECURITY'); hud.bars(false); hud.show(true); hud.health(M.health); buttons(); input.showTouch(true); foot.cam(0, true); objective(); },
+    enter() { if (!M.stolen && !M.alarm) hud.note('SABLE: GATE HAS A CAMERA AND A GUARD. THE WEST FENCE IS CUT — QUIETER WAY IN.', 7); phase = 'play'; hud.caption(''); hud.secLabel('SECURITY'); hud.bars(false); hud.show(true); hud.health(M.health); buttons(); input.showTouch(true); foot.cam(0, true); objective(); },
     menu(time) { camera.position.set(Math.sin(time * 0.05) * 90, 30, 80 + Math.cos(time * 0.05) * 20); camera.lookAt(0, 4, -25); },
     intro,
     update(dt) {
