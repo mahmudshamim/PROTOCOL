@@ -23,7 +23,7 @@ export async function create(ctx) {
   });
   const bikeMesh = buildBike(); W.add(bikeMesh.root);
   const bike = new Vehicle(bikeMesh, { maxSpeed: 44, accel: 13, brake: 26, turn: 2.3, grip: 7, drag: 0.05, radius: 0.8 });
-  bike.place(road.cx(-5), -5, road.heading(-5), 12);
+  bike.place(road.cx(-5), -5, road.heading(-5), M.carrySpeed ?? 12); delete M.carrySpeed;
   const rider = human(bikeMesh.body, 0x3a3a44); rider.root.position.set(0, 0.52, -0.32);
   const lamp = new THREE.SpotLight(0xfff2d8, 220, 70, 0.42, 0.5, 1.4); lamp.position.set(0, 1.1, 0.6); bikeMesh.body.add(lamp);
   lamp.target.position.set(0, 0, 18); bikeMesh.body.add(lamp.target);

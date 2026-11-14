@@ -1,13 +1,12 @@
 // Stage 1: Halden Research Station. Infiltrate, steal LATTICE, reach the motorcycle.
-import { THREE, A, World, camera, clamp, lerp, ease, glow, setBloom, setTimeOfDay, setFocus, params } from '../core.js';
+import { THREE, A, World, camera, clamp, lerp, ease, glow, setBloom, setTimeOfDay, setFocus, params, ridePose, anim, applyPose } from '../core.js';
 import { M, saveCheckpoint } from '../state.js';
 import { audio } from '../audio.js';
 import { hud } from '../hud.js';
 import { input } from '../input.js';
 import { createStealth, stealthHud } from '../stealth.js';
 import { createOnFoot } from '../onfoot.js';
-import { applyPose } from '../core.js';
-import { buildBike } from '../vehicles.js';
+import { buildBike, Vehicle } from '../vehicles.js';
 
 export async function create(ctx) {
   setTimeOfDay(0);
@@ -16,7 +15,7 @@ export async function create(ctx) {
 
   // ground, roads, mesas
   const ground = W.mesh(new THREE.PlaneGeometry(900, 900), A.sand, 0, 0, 0, false); ground.rotation.x = -Math.PI / 2;
-  for (const [x0, z0, x1, z1] of [[-5, 28, 5, 140], [-58, -13, 58, 28]]) {
+  for (const [x0, z0, x1, z1] of [[-5, 28, 5, 260], [-58, -13, 58, 28]]) {
     const r = W.mesh(new THREE.PlaneGeometry(x1 - x0, z1 - z0), A.asphalt, (x0 + x1) / 2, 0.02, (z0 + z1) / 2, false); r.rotation.x = -Math.PI / 2;
   }
   for (let i = 0; i < 14; i++) {
@@ -108,7 +107,18 @@ export async function create(ctx) {
 
   // motorcycle beyond the west fence
   const BIKE = new THREE.Vector3(-70, 0, -3);
-  const bike = buildBike(); bike.root.position.copy(BIKE); bike.root.rotation.y = -Math.PI / 2; W.add(bike.root);
+  const bike = buildBike(); bike.root.position.copy(BIKE); bike.root.rotation.y = 0.08; W.add(bike.root); // facing south, down the track
+  const HIGHWAY = new THREE.Vector3(0, 1.5, 230), HIGHWAY_Z = 220;
+  for (const x of [-6, 6]) { W.mesh(new THREE.BoxGeometry(0.15, 2.2, 0.15), A.dark, x, 1.1, HIGHWAY_Z, false); W.mesh(new THREE.BoxGeometry(1.4, 0.6, 0.08), glow(0x6fd0ff, 2), x, 2.3, HIGHWAY_Z, false); }
+  let ride = null; // the motorcycle once you are on it
+  // dirt track from the bike round the fence corner to the road
+  const CORNER = new THREE.Vector3(-66, 1.5, 40);
+  const dirt = new THREE.MeshStandardMaterial({ color: 0x6b4a32, roughness: 1 });
+  for (const [a, b] of [[[-70, -3], [-66, 40]], [[-66, 40], [-4, 70]]]) {
+    const dx = b[0] - a[0], dz = b[1] - a[1], len = Math.hypot(dx, dz);
+    const m = W.mesh(new THREE.PlaneGeometry(4, len + 4), dirt, (a[0] + b[0]) / 2, 0.015, (a[1] + b[1]) / 2, false);
+    m.rotation.set(-Math.PI / 2, 0, Math.atan2(dx, dz) + Math.PI);
+  }
 
   // player and guards
   const afterTheft = M.stolen;
@@ -170,7 +180,14 @@ export async function create(ctx) {
   function interact() {
     const p = player.root.position;
     if (!M.stolen && p.distanceTo(DEVICE) < 2.4) { phase = 'theft'; t = 0; hud.bars(true); hud.show(false); input.showTouch(false); audio.ping(220, 2.5, 0.12); audio.ping(330, 2.5, 0.08); }
-    else if (M.stolen && p.distanceTo(BIKE) < 2.8) { phase = 'mount'; t = 0; hud.bars(true); hud.show(false); input.showTouch(false); audio.siren(false); M.bikeSeen = M.alarm; }
+    else if (M.stolen && p.distanceTo(BIKE) < 2.8) {
+      phase = 'mount'; t = 0; M.bikeSeen = M.alarm;
+      ride = new Vehicle(bike, { maxSpeed: 44, accel: 13, brake: 26, turn: 2.3, grip: 7, drag: 0.05, radius: 0.8 });
+      ride.place(BIKE.x, BIKE.z, bike.root.rotation.y, 0);
+      bike.body.add(player.root); player.root.position.set(0, 0.52, -0.32); player.root.rotation.set(0, 0, 0); anim(player, 'Idle');
+      input.setButtons([{ a: 'brake', label: 'BRAKE' }]); hud.prompt(null); hud.bar(null); hud.health(null); hud.foe(null); hud.secLabel('SPEED');
+      hud.note('RIDE SOUTH TO THE HIGHWAY', 4);
+    }
   }
 
   function playUpdate(dt) {
@@ -223,14 +240,26 @@ export async function create(ctx) {
     }
   }
 
-  function mount(dt) {
+  const camPos = new THREE.Vector3(), fwd = new THREE.Vector3();
+  function mount(dt) { // you ride the bike yourself out to the highway
     t += dt;
-    const v = Math.min(26, t * 9);
-    bike.root.position.x -= v * dt;
-    player.root.position.set(bike.root.position.x + 0.15, 0.28, BIKE.z); player.h = -Math.PI / 2; player.root.rotation.y = player.h;
-    camera.position.set(BIKE.x - 9, 1.1, BIKE.z + 7); camera.lookAt(tmp.set(bike.root.position.x, 1, BIKE.z));
-    audio.engine(Math.min(1, v / 26), 1);
-    if (t > 3) { phase = 'done'; ctx.next('highway'); }
+    const mv = input.move();
+    let throttle = mv.y, steer = mv.x;
+    const goal = ride.pos.z < 34 && ride.pos.x < -10 ? CORNER : HIGHWAY;
+    if (params.has('drive')) { const a = ride.aim(goal.x === CORNER.x ? goal : tmp.set(0, 0, HIGHWAY_Z + 20), 24); throttle = a.throttle; steer = a.steer; }
+    ride.update(dt, throttle, steer, { handbrake: input.held('brake'), grip: 0.8, drag: Math.abs(ride.pos.x) > 5 || ride.pos.z < 28 ? 0.15 : 0 });
+    const before = ride.pos.clone(); W.resolve(ride.pos, 0.8);
+    if (before.distanceToSquared(ride.pos) > 1e-6) ride.speed *= 0.85; // brushed a wall or fence
+    bike.body.rotation.z = lerp(bike.body.rotation.z, ride.steer * clamp(ride.speed / 20, 0, 1) * 0.45, Math.min(1, dt * 8));
+    ride.forward(fwd);
+    camPos.set(ride.pos.x - fwd.x * (5.5 + ride.speed * 0.05), 2.1 + ride.speed * 0.012, ride.pos.z - fwd.z * (5.5 + ride.speed * 0.05));
+    camera.position.lerp(camPos, t < 0.1 ? 1 : Math.min(1, dt * 6));
+    camera.lookAt(tmp.set(ride.pos.x + fwd.x * 6, 1.2, ride.pos.z + fwd.z * 6));
+    audio.engine(clamp(Math.abs(ride.speed) / 44, 0, 1), 1);
+    hud.objective('Ride south to the highway.'); hud.marker(goal, goal === CORNER ? 'TRACK' : 'HIGHWAY');
+    hud.security(`${Math.round(Math.abs(ride.speed) * 3.6)} KM/H`, '#e8e8e8');
+    hud.flags('ON THE BIKE');
+    if (ride.pos.z > HIGHWAY_Z) { phase = 'done'; M.carrySpeed = Math.max(10, ride.speed); audio.siren(false); ctx.next('highway'); }
   }
 
   function intro(time) {
@@ -244,8 +273,8 @@ export async function create(ctx) {
 
   return {
     world: W,
-    get focus() { return phase === 'mount' ? bike.root.position : player.root.position; },
-    enter() { if (!M.stolen && !M.alarm) hud.note('SABLE: ONE GUARD ON THE GATE. WAIT TILL HE LOOKS AWAY, OR TAKE HIM FROM BEHIND. THE WEST FENCE IS CUT TOO.', 7); phase = 'play'; hud.caption(''); hud.secLabel('SECURITY'); hud.bars(false); hud.show(true); hud.health(M.health); buttons(); input.showTouch(true); foot.cam(0, true); objective(); },
+    get focus() { return phase === 'mount' || phase === 'done' ? bike.root.position : player.root.position; },
+    enter() { if (!M.stolen && !M.alarm) hud.note('SABLE: ONE GUARD ON THE GATE. WAIT TILL HE LOOKS AWAY, OR TAKE HIM FROM BEHIND. THE WEST FENCE IS CUT TOO.', 7); phase = 'play'; hud.caption(''); hud.secLabel('SECURITY'); hud.bars(false); hud.show(true); hud.health(M.health); buttons(); input.showTouch(true); foot.cam(0, true); objective(); if (params.has('mount')) interact(); },
     menu(time) { camera.position.set(Math.sin(time * 0.05) * 90, 30, 80 + Math.cos(time * 0.05) * 20); camera.lookAt(0, 4, -25); },
     intro,
     update(dt) {
@@ -255,7 +284,7 @@ export async function create(ctx) {
     },
     animate(dt, time) {
       const slow = phase === 'theft' ? 0.35 : 1;
-      player.mixer.update(dt * slow); applyPose(player, dt * slow); stealth.animate(dt * slow);
+      player.mixer.update(dt * slow); if (ride) ridePose(player, { lean: 0.3, hands: 0.4 }); else applyPose(player, dt * slow); stealth.animate(dt * slow);
       rings.forEach((r, i) => { r.rotation.x = time * (0.7 + i * 0.4); r.rotation.y = time * (0.5 + i * 0.3); });
       if (M.alarm) {
         const p = 0.5 + 0.5 * Math.sin(time * 6);
