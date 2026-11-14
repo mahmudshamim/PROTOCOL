@@ -66,7 +66,7 @@ function startGame() {
 
 // ---------- boot ----------
 await loadAssets();
-if (params.has('alarm')) { M.alarm = true; M.alarmCause = 'A guard identified you.'; }
+if (params.has('alarm')) { M.alarm = true; M.alarmCause = 'A guard identified you.'; M.alarmBeforeTheft = !params.has('stolen'); }
 if (params.has('id')) { M.identified = true; M.described = true; }
 if (params.has('bike')) M.bikeSeen = true;
 if (params.has('stolen')) M.stolen = true;

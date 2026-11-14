@@ -146,13 +146,19 @@ export async function create(ctx) {
   if (M.alarm) { audio.siren(true); if (M.alarmBeforeTheft) sealDoor(); for (const g of stealth.guards) { g.mode = 'investigate'; g.last.copy(player.root.position); } }
   if (afterTheft) { core.visible = false; carried.visible = true; carriedLight.intensity = 5; }
 
-  let phase = 'play', t = 0, missingTimer = null;
+  let phase = 'play', t = 0, missingTimer = null, forceT = 0;
+  const DOOR_OUT = new THREE.Vector3(0, 0, -14.2), SIDE_DOOR = new THREE.Vector3(21.5, 1.5, -36);
+  function forceDoor() { // pry the sealed main door open: works, but loud
+    doorSealed = false; door.visible = false;
+    W.solids.splice(W.solids.indexOf(doorBox), 1); W.blockers.splice(W.blockers.indexOf(doorBox), 1);
+    audio.burst(0.6, 0.35, 500); stealth.noise(DOOR_OUT, 18); hud.note('DOOR FORCED — THAT WAS LOUD. MOVE.');
+  }
 
   const buttons = () => input.setButtons([{ a: 'interact', label: 'ACT' }, { a: 'takedown', label: 'GRAB' }, { a: 'sprint', label: 'RUN' }, { a: 'sneak', label: 'SNEAK' }, { a: 'throw', label: 'THROW' }]);
 
   function objective() {
-    hud.objective(M.stolen ? 'Get out. Reach the motorcycle beyond the west fence.' : doorSealed ? 'Main door is sealed. Reach the lab through the east side door.' : 'Get inside the station and steal the device from the lab.');
-    hud.marker(M.stolen ? BIKE.clone().setY(1) : null, 'BIKE');
+    hud.objective(M.stolen ? 'Get out. Reach the motorcycle beyond the west fence.' : doorSealed ? 'Main door is sealed. Use the east side door, or force the main door (loud).' : 'Get inside the station and steal the device from the lab.');
+    hud.marker(M.stolen ? BIKE.clone().setY(1) : doorSealed ? SIDE_DOOR : null, M.stolen ? 'BIKE' : 'SIDE DOOR');
   }
 
   function interact() {
@@ -167,6 +173,9 @@ export async function create(ctx) {
     if (input.pressed('takedown')) stealth.takedown();
     if (input.pressed('throw')) { const at = foot.throwStone(); if (at) setTimeout(() => stealth.noise(at, 12), 350); }
     if (phase !== 'play') return;
+    const atDoor = doorSealed && !M.stolen && player.root.position.distanceTo(DOOR_OUT) < 2.6;
+    if (atDoor && input.held('interact')) { forceT += dt; if (forceT >= 2.5) { forceT = 0; forceDoor(); } }
+    else forceT = Math.max(0, forceT - dt * 2);
     stealth.update(dt);
     if (missingTimer !== null && !M.alarm) {
       if (LAB_GUARD.down) missingTimer = null;
@@ -180,6 +189,7 @@ export async function create(ctx) {
     let pr = null;
     if (!M.stolen && p.distanceTo(DEVICE) < 2.4) pr = { key: 'E', text: 'TAKE THE DEVICE', action: 'interact' };
     else if (M.stolen && p.distanceTo(BIKE) < 2.8) pr = { key: 'E', text: 'RIDE', action: 'interact' };
+    else if (doorSealed && !M.stolen && p.distanceTo(DOOR_OUT) < 2.6) pr = { key: 'HOLD E', text: forceT > 0 ? `FORCING THE DOOR · ${Math.round((forceT / 2.5) * 100)}%` : 'FORCE THE DOOR (LOUD)', action: 'interact' };
     else if (!M.stolen && p.distanceTo(BIKE) < 3.5) pr = { key: '—', text: 'GETAWAY BIKE · STEAL THE DEVICE FIRST', action: null };
     else if (stealth.nearest(1.9)) pr = { key: 'F', text: 'TAKEDOWN', action: 'takedown' };
     hud.prompt(pr);
