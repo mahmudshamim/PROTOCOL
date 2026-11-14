@@ -106,7 +106,14 @@ export function createStealth(world, opts) {
       if (g.pause > 0) { g.pause -= dt; anim(g, 'Idle'); }
       else if (gp.distanceTo(wp) < 0.8) {
         if (g.wps.length > 1) { g.wi = (g.wi + 1) % g.wps.length; g.pause = 1.5; }
-        else { anim(g, 'Idle'); if (g.def.face !== undefined) { g.h += Math.atan2(Math.sin(g.def.face - g.h), Math.cos(g.def.face - g.h)) * Math.min(1, dt * 3); g.root.rotation.y = g.h; } }
+        else {
+          anim(g, 'Idle');
+          if (g.def.face !== undefined) { // posted guard: holds a direction, optionally scanning side to side
+            g.scanT = (g.scanT ?? 0) + dt;
+            const want = g.def.face + (g.def.scan ? Math.sin((g.scanT / (g.def.scanPeriod ?? 10)) * Math.PI * 2) * g.def.scan : 0);
+            g.h += Math.atan2(Math.sin(want - g.h), Math.cos(want - g.h)) * Math.min(1, dt * 3); g.root.rotation.y = g.h;
+          }
+        }
       } else walkTo(g, world.steer(gp, wp, nav), 1.45, dt);
     } else if (g.mode === 'suspicious') {
       anim(g, 'Idle'); face(g, g.last.x - gp.x, g.last.z - gp.z, dt, 3);

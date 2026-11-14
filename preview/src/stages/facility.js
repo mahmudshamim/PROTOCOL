@@ -127,6 +127,7 @@ export async function create(ctx) {
       { wps: [[-2, -33], [16, -33], [16, -42], [-2, -42]] },
       { wps: [[-52, -22], [-52, 16]] },
       { wps: [[16, -27.5]], face: Math.PI / 2, control: true },
+      { wps: [[3, 27]], face: Math.PI / 2, scan: 1.3, scanPeriod: 12 }, // gate post: looks out at the road, then into the yard
     ],
     cameras: [
       { x: 11, z: 26, y: 4.2, yaw: Math.PI / 2, sweep: 0.4, period: 9, pole: true }, // watches the east yard, not the gate
@@ -231,7 +232,7 @@ export async function create(ctx) {
   }
 
   function intro(time) {
-    const caps = [[0.5, 'HALDEN RESEARCH STATION · 19:42'], [3.6, 'ONE DEVICE. SIX GUARDS.'], [6.6, 'NO ONE HAS TO KNOW YOU WERE HERE.']];
+    const caps = [[0.5, 'HALDEN RESEARCH STATION · 19:42'], [3.6, 'ONE DEVICE. SEVEN GUARDS.'], [6.6, 'NO ONE HAS TO KNOW YOU WERE HERE.']];
     let c = ''; for (const [at, text] of caps) if (time > at && time < at + 2.6) c = text; hud.caption(c);
     if (time < 5) { const k = ease(time / 5); camera.position.set(lerp(95, 30, k), lerp(46, 16, k), lerp(70, 62, k)); camera.lookAt(tmp.set(0, 4, -25)); }
     else if (time < 9) { const k = ease((time - 5) / 4); camera.position.set(lerp(-6, 2.2, k), lerp(3.2, 1.7, k), lerp(46, 52.4, k)); camera.lookAt(tmp.set(0, lerp(4, 1.5, k), lerp(-25, 56, k))); }
@@ -242,7 +243,7 @@ export async function create(ctx) {
   return {
     world: W,
     get focus() { return phase === 'mount' ? bike.root.position : player.root.position; },
-    enter() { if (!M.stolen && !M.alarm) hud.note('SABLE: THE GATE IS CLEAR RIGHT NOW. WATCH THE GUARD BY THE BUILDING. THE WEST FENCE IS CUT TOO.', 7); phase = 'play'; hud.caption(''); hud.secLabel('SECURITY'); hud.bars(false); hud.show(true); hud.health(M.health); buttons(); input.showTouch(true); foot.cam(0, true); objective(); },
+    enter() { if (!M.stolen && !M.alarm) hud.note('SABLE: ONE GUARD ON THE GATE. WAIT TILL HE LOOKS AWAY, OR TAKE HIM FROM BEHIND. THE WEST FENCE IS CUT TOO.', 7); phase = 'play'; hud.caption(''); hud.secLabel('SECURITY'); hud.bars(false); hud.show(true); hud.health(M.health); buttons(); input.showTouch(true); foot.cam(0, true); objective(); },
     menu(time) { camera.position.set(Math.sin(time * 0.05) * 90, 30, 80 + Math.cos(time * 0.05) * 20); camera.lookAt(0, 4, -25); },
     intro,
     update(dt) {
