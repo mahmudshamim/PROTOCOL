@@ -253,6 +253,19 @@ export function applyPose(e, dt) {
     turnBone(bone(e, 'Spine1'), _r, 0.4 * k); turnBone(bone(e, 'Head'), _r, 0.45 * k); // snap back
   }
 }
+const _d = new THREE.Vector3(), _qr = new THREE.Quaternion();
+/** Seated riding pose (motorcycle or car), layered over the idle clip. Call after mixer.update(). */
+export function ridePose(e, { hands = 0.45, lean = 0.55 } = {}) {
+  e.root.getWorldQuaternion(_qr);
+  _f.set(0, 0, 1).applyQuaternion(_qr); _r.set(-_f.z, 0, _f.x).normalize(); _d.set(0, -1, 0);
+  turnBone(bone(e, 'Spine'), _r, -lean * 0.6); turnBone(bone(e, 'Spine1'), _r, -lean * 0.4);
+  for (const [side, s] of [['Left', -1], ['Right', 1]]) {
+    _t.copy(_f).multiplyScalar(0.85).addScaledVector(_d, 0.45).addScaledVector(_r, s * 0.22).normalize(); aimBone(bone(e, side + 'UpLeg'), _t, 1);
+    _t.copy(_d).addScaledVector(_f, 0.15).addScaledVector(_r, s * 0.05).normalize(); aimBone(bone(e, side + 'Leg'), _t, 1);
+    _t.copy(_f).addScaledVector(_d, hands).addScaledVector(_r, s * 0.25).normalize(); aimBone(bone(e, side + 'Arm'), _t, 1);
+    _t.copy(_f).addScaledVector(_d, hands * 0.6).addScaledVector(_r, -s * 0.05).normalize(); aimBone(bone(e, side + 'ForeArm'), _t, 1);
+  }
+}
 export function anim(e, name) {
   if (e.cur === name) return;
   e.acts[name].reset().fadeIn(0.25).play(); e.acts[e.cur].fadeOut(0.25); e.cur = name;

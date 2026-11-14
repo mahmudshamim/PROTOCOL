@@ -38,6 +38,7 @@ export class Road {
       m.rotation.y = i; this.mesas.push({ m, a: i * 0.39, r: 330 + (i % 4) * 50 });
     }
     this.reflectorMat = glow(0xffb050, 1.6);
+    this.driftMat = A.sand.clone(); Object.assign(this.driftMat, { transparent: true, opacity: 0.55, depthWrite: false }); this.driftMat.userData = {};
   }
   cx(z) { const d = -z; return 30 * Math.sin(d / 260) + 14 * Math.sin(d / 97 + 1.3); }
   heading(z) { const d = -z; return Math.atan2((30 / 260) * Math.cos(d / 260) + (14 / 97) * Math.cos(d / 97 + 1.3), -1); }
@@ -104,7 +105,7 @@ export class Road {
     for (const [d, len, lat, w] of this.f.drifts ?? []) if (inC(d)) {
       for (let k = 0; k < len; k += 6) {
         const p = this.point(d + k + 3, lat);
-        const s = new THREE.Mesh(new THREE.CircleGeometry(w / 2, 14), A.sand); s.userData.shared = false;
+        const s = new THREE.Mesh(new THREE.CircleGeometry(w / 2, 28), this.driftMat); s.userData.shared = false;
         s.rotation.x = -Math.PI / 2; s.position.set(p.x, 0.045, p.z); s.scale.set(1, 1.6, 1); s.receiveShadow = true; group.add(s);
       }
     }

@@ -1,5 +1,6 @@
 // Stage 2: motorcycle escape along the desert highway to the container yard.
-import { THREE, World, camera, clamp, lerp, params, setTimeOfDay, setFocus, human } from '../core.js';
+import { THREE, World, camera, clamp, lerp, params, setTimeOfDay, setFocus, human, ridePose } from '../core.js';
+import { createTraffic } from '../traffic.js';
 import { M, saveCheckpoint } from '../state.js';
 import { audio } from '../audio.js';
 import { hud } from '../hud.js';
@@ -23,10 +24,11 @@ export async function create(ctx) {
   const bikeMesh = buildBike(); W.add(bikeMesh.root);
   const bike = new Vehicle(bikeMesh, { maxSpeed: 44, accel: 13, brake: 26, turn: 2.3, grip: 7, drag: 0.05, radius: 0.8 });
   bike.place(road.cx(-5), -5, road.heading(-5), 12);
-  const rider = human(bikeMesh.body, 0x3a3a44); rider.root.position.set(0, 0.32, -0.05); rider.model.rotation.x = 0.35;
+  const rider = human(bikeMesh.body, 0x3a3a44); rider.root.position.set(0, 0.52, -0.32);
   const lamp = new THREE.SpotLight(0xfff2d8, 220, 70, 0.42, 0.5, 1.4); lamp.position.set(0, 1.1, 0.6); bikeMesh.body.add(lamp);
   lamp.target.position.set(0, 0, 18); bikeMesh.body.add(lamp.target);
 
+  const traffic = createTraffic(W, road, { count: 6, lane: 2.3, seed: 4 }); traffic.reset(0);
   const chase = M.bikeSeen;
   const pickups = chase ? [0, 1].map((i) => {
     const m = buildPickup(); W.add(m.root);
@@ -53,6 +55,7 @@ export async function create(ctx) {
       let laneT = 0;
       for (const [rd, rl] of road.f.rocks) if (rd - d > -3 && rd - d < 60) laneT = rl < 0 ? 2.6 : -2.6;
       for (const [gd, gl] of road.f.gates) if (gd - d > -3 && gd - d < 80) laneT = gl;
+      for (const c of traffic.cars) if (c.d - d > -3 && c.d - d < (c.dir < 0 ? 110 : 45) && Math.abs(c.lat - laneT) < 2.6) laneT = c.lat > 0 ? -0.9 : 0.9;
       const a = bike.aim(road.point(d + 22, laneT), 30); throttle = a.throttle; steer = a.steer;
     }
     const lat = road.lateral(bike.pos), off = Math.abs(lat) > road.half + 0.4, drift = road.inDrift(bike.pos);
@@ -64,6 +67,8 @@ export async function create(ctx) {
         bike.pos.x = o.x + (dx / dist) * (o.r + bike.radius); bike.pos.z = o.z + (dz / dist) * (o.r + bike.radius); bike.speed *= 0.3;
       }
     }
+    traffic.update(dt, d);
+    if (traffic.hit(bike.pos, bike.radius)) return crash('Hit a car');
     for (const p of pickups) {
       if (!p.active) { if ((p.wait -= dt) <= 0) { p.active = true; p.place(road.cx(-(d - 80)) + (p === pickups[0] ? -2 : 2), -(d - 80), road.heading(-(d - 80)), bike.speed); hud.note('STATION PICKUPS BEHIND YOU'); } continue; }
       const pd = -p.pos.z, ahead = pd > d;
@@ -95,7 +100,7 @@ export async function create(ctx) {
       hud.show(true); hud.bars(false); hud.marker(null); hud.health(null); hud.foe(null); hud.bar(null); hud.prompt(null);
       hud.secLabel('SPEED');
       input.setButtons([{ a: 'brake', label: 'BRAKE' }]); input.showTouch(true);
-      hud.note(chase ? 'THEY SAW THE BIKE LEAVE. EXPECT COMPANY.' : 'SABLE: CONTAINER YARD, TWO AND A HALF KLICKS. STAY ON THE ROAD.');
+      hud.note(chase ? 'THEY SAW THE BIKE LEAVE. EXPECT COMPANY.' : 'SABLE: CONTAINER YARD, TWO AND A HALF KLICKS. WATCH THE TRAFFIC.');
       road.update(bike.pos); chaseCam(0, true);
     },
     update(dt) {
@@ -115,7 +120,7 @@ export async function create(ctx) {
       hud.flags(`CRASHES · ${M.crashes} / 3<br>${road.inDrift(bike.pos) ? 'SAND ON THE ROAD' : Math.abs(road.lateral(bike.pos)) > road.half + 0.4 ? 'OFF ROAD' : 'ON ROAD'}`);
       audio.engine(clamp(Math.abs(bike.speed) / 44, 0, 1), phase === 'over' ? 0 : 1);
     },
-    animate(dt) { rider.mixer.update(dt); setFocus(bike.pos); },
+    animate(dt) { rider.mixer.update(dt); ridePose(rider, { lean: 0.3, hands: 0.4 }); setFocus(bike.pos); },
     dispose() { audio.engine(0, 0); camera.fov = 55; camera.updateProjectionMatrix(); hud.secLabel('SECURITY'); W.dispose(); },
   };
 }
