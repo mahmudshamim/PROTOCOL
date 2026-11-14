@@ -5,13 +5,23 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover" />
 <meta name="mobile-web-app-capable" content="yes" />
 <meta name="apple-mobile-web-app-capable" content="yes" />
-<title>PROTOCOL — Preview</title>
+<title>PROTOCOL — One device. No way back.</title>
+<meta name="description" content="PROTOCOL: a cinematic stealth heist and desert escape, playable in the browser." />
+<meta name="theme-color" content="#0d0f12" />
+<link rel="icon" href="/icon.svg" type="image/svg+xml" />
+<link rel="icon" href="/icon-32.png" sizes="32x32" type="image/png" />
+<link rel="apple-touch-icon" href="/icon-180.png" />
+<link rel="manifest" href="/manifest.webmanifest" />
+<meta property="og:title" content="PROTOCOL" />
+<meta property="og:description" content="One device. No way back. A stealth heist and desert escape in your browser." />
+<meta property="og:image" content="/icon-512.png" />
 <style>
   html, body { margin: 0; height: 100%; background: #000; overflow: hidden; font-family: "Helvetica Neue", Arial, sans-serif; color: #e8e8e8; overscroll-behavior: none; -webkit-user-select: none; user-select: none; -webkit-touch-callout: none; }
   canvas { display: block; touch-action: none; }
   .layer { position: fixed; inset: 0; pointer-events: none; }
   kbd { border: 1px solid #fff9; border-radius: 4px; padding: 2px 8px; margin-right: 8px; font-family: inherit; font-size: .9em; }
   #title { display: flex; flex-direction: column; align-items: center; justify-content: center; background: linear-gradient(#0008, #000c); pointer-events: auto; cursor: pointer; z-index: 8; text-align: center; }
+  #title .mark { width: min(96px, 16vh); height: auto; margin-bottom: 18px; filter: drop-shadow(0 0 24px #38b6ff55); }
   #title h1 { font-size: 9vw; letter-spacing: 1.6vw; margin: 0; font-weight: 200; }
   #title p { letter-spacing: .4em; font-size: 13px; opacity: .8; margin: 10px 0; }
   #title .go { margin-top: 40px; color: #6fd0ff; animation: pulse 1.6s infinite; }
@@ -85,6 +95,7 @@
   <div id="tpause" class="tbtn">II</div>
 </div>
 <div id="title" class="layer">
+  <img class="mark" src="/icon.svg" alt="" />
   <h1>PROTOCOL</h1>
   <p>ONE DEVICE. NO WAY BACK.</p>
   <p class="go">TAP OR CLICK TO BEGIN</p>
@@ -94,7 +105,7 @@
 <div id="pause" class="layer"><h2>PAUSED</h2><div class="endbtn" id="pauseBtn">RESUME</div></div>
 <div id="end" class="layer"><h2 id="endTitle"></h2><p id="endText"></p><div id="endBtns"></div></div>
 <div id="fade"></div>
-<div id="load" class="layer">LOADING</div>
+<div id="load" class="layer"><img src="/icon.svg" alt="" style="width:56px;margin-right:18px;opacity:.85" />LOADING</div>
 <div id="rotate">ROTATE YOUR PHONE<br>TO LANDSCAPE</div>
 <div id="tag">PREVIEW · PLACEHOLDER MODELS · NOT FINAL ART</div>
 <script type="module" src="/src/main.js"></script>
