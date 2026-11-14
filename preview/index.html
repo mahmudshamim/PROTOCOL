@@ -5,6 +5,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover" />
 <meta name="mobile-web-app-capable" content="yes" />
 <meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+<meta name="apple-mobile-web-app-title" content="PROTOCOL" />
 <title>PROTOCOL — One device. No way back.</title>
 <meta name="description" content="PROTOCOL: a cinematic stealth heist and desert escape, playable in the browser." />
 <meta name="theme-color" content="#0d0f12" />
@@ -84,10 +86,16 @@
   .tbtn { width: 72px; height: 72px; border-radius: 50%; background: #ffffff1c; border: 1px solid #fff5; color: #fff; display: flex; align-items: center; justify-content: center; font-size: 10px; letter-spacing: .12em; direction: ltr; touch-action: none; }
   .tbtn.hot { background: #6fd0ff40; border-color: #6fd0ff; }
   .tbtn.down { background: #ffffff55; }
+  #tfull { position: absolute; top: max(14px, env(safe-area-inset-top)); left: calc(50% + 34px); width: 44px; height: 44px; font-size: 18px; }
+  .fs #tfull, .standalone #tfull { display: none; }
+  .fsbtn { margin-top: 14px; }
+  #iosHint { display: none; position: fixed; inset: 0; z-index: 30; background: #000e; align-items: center; justify-content: center; text-align: center; padding: 30px; line-height: 2; letter-spacing: .12em; font-size: 13px; pointer-events: auto; }
+  #iosHint b { color: #6fd0ff; font-weight: 400; }
   #tpause { position: absolute; top: max(14px, env(safe-area-inset-top)); left: 50%; transform: translateX(-50%); width: 44px; height: 44px; font-size: 13px; }
   .touch #flags { display: none; }
   .touch #prompt { bottom: 46vh; }
   .touch #obj b, .touch #sec b { font-size: 13px; }
+  .touch #obj { max-width: 36vw; }
   .touch #note { top: 70px; font-size: 11px; }
   #rotate { display: none; position: fixed; inset: 0; z-index: 20; background: #000; align-items: center; justify-content: center; letter-spacing: .3em; font-size: 13px; text-align: center; padding: 30px; }
   @media (orientation: portrait) { .touch #rotate { display: flex; } }
@@ -113,17 +121,20 @@
   <div id="stick"><div id="knob"></div></div>
   <div id="btns"></div>
   <div id="tpause" class="tbtn">II</div>
+  <div id="tfull" class="tbtn" title="Full screen">⛶</div>
 </div>
 <div id="title" class="layer">
   <img class="mark" src="/icon.svg" alt="" />
   <h1>PROTOCOL</h1>
   <p>ONE DEVICE. NO WAY BACK.</p>
   <p class="go">TAP OR CLICK TO BEGIN</p>
+  <p class="help tkeys" id="titleFull">Full screen starts when you tap. On iPhone, add it to your home screen.</p>
   <p class="help keys">ON FOOT · WASD move · MOUSE look · SHIFT sprint · C sneak · E interact · F takedown · G throw<br>DRIVING · W/S throttle and brake · A/D steer · SPACE handbrake · ESC pause</p>
   <p class="help tkeys">LEFT THUMB move or steer · RIGHT THUMB look · BUTTONS for actions</p>
   <div class="by">A GAME BY<img src="/brand/mahmud-white.png" alt="Mahmud" /></div>
 </div>
-<div id="pause" class="layer"><h2>PAUSED</h2><div class="endbtn" id="pauseBtn">RESUME</div></div>
+<div id="pause" class="layer"><h2>PAUSED</h2><div class="endbtn" id="pauseBtn">RESUME</div><div class="endbtn fsbtn" id="pauseFull">FULL SCREEN</div></div>
+<div id="iosHint">TO PLAY FULL SCREEN ON IPHONE<br>tap <b>Share</b> (the square with an arrow)<br>then <b>Add to Home Screen</b><br>and open PROTOCOL from your home screen.<br><br><b>TAP TO CLOSE</b></div>
 <div id="end" class="layer"><h2 id="endTitle"></h2><p id="endText"></p><div id="endBtns"></div><div class="by">A GAME BY<img src="/brand/mahmud-white.png" alt="Mahmud" /></div></div>
 <div id="fade"></div>
 <div id="load" class="layer"><img src="/icon.svg" alt="" style="width:56px;margin-right:18px;opacity:.85" />LOADING</div>

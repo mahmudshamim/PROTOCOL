@@ -60,9 +60,27 @@ function retry() {
 function startGame() {
   if (phase !== 'menu') return;
   audio.start();
-  if (isTouch) document.documentElement.requestFullscreen?.().catch(() => {});
+  if (isTouch) goFullscreen(false);
   $('title').style.display = 'none'; phase = 'intro'; t = 0; hud.bars(true);
 }
+
+// ---------- full screen (hides the browser's address bar) ----------
+const root = document.documentElement;
+const canFullscreen = !!(root.requestFullscreen || root.webkitRequestFullscreen);
+const standalone = matchMedia('(display-mode: fullscreen), (display-mode: standalone)').matches || navigator.standalone;
+if (standalone) document.body.classList.add('standalone');
+function goFullscreen(explain = true) {
+  if (document.fullscreenElement || document.webkitFullscreenElement || standalone) return;
+  if (canFullscreen) {
+    const p = (root.requestFullscreen || root.webkitRequestFullscreen).call(root, { navigationUI: 'hide' });
+    p?.then?.(() => screen.orientation?.lock?.('landscape').catch(() => {})).catch(() => {});
+  } else if (explain) $('iosHint').style.display = 'flex'; // iPhone Safari has no full-screen API for pages
+}
+const syncFs = () => document.body.classList.toggle('fs', !!(document.fullscreenElement || document.webkitFullscreenElement));
+document.addEventListener('fullscreenchange', syncFs); document.addEventListener('webkitfullscreenchange', syncFs);
+$('tfull').addEventListener('pointerdown', (e) => { e.stopPropagation(); goFullscreen(); });
+$('pauseFull').addEventListener('click', () => goFullscreen());
+$('iosHint').addEventListener('click', () => ($('iosHint').style.display = 'none'));
 
 // ---------- boot ----------
 await loadAssets();
