@@ -19,6 +19,7 @@ Approved by the owner. Do not reopen without asking. Add new rows at the bottom.
 | 2026-11-13 | **Gate 3 approved**: asset catalogue and pipeline. | Owner said to proceed. Tool installs and budget were not answered and stay open. |
 | 2026-11-13 | **Gate 4 approved**: production roadmap. Coding started in `game/`. | Owner said to do the remaining work. |
 | 2026-11-13 | Milestone 0 built. Asset compression uses Meshopt + WebP for now. | KTX2 and Blender scripts wait on install permission. Owner has not yet run it in a visible browser. |
+| 2026-11-15 | Owner chose to finish the **whole game in preview form first** (placeholder 3D, playable on desktop and phone). Real 3D assets and the `game/` codebase come later. | Desktop quality must not drop below the earlier preview; phones get a low profile. |
 
 ## Open decisions (owner must answer)
 

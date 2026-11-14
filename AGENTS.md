@@ -13,7 +13,7 @@ You are working on **PROTOCOL**, an original cinematic third-person stealth / he
 ## Current status
 
 - Repo is empty on purpose. The old prototype was deleted (still in git history, commit `5e64ae6`, do not restore it).
-- `preview/` holds a throwaway demo the owner asked for (see `preview/README.md`). Leave it alone; do not extend it or reuse it as the game's base.
+- `preview/` is now the **full game in placeholder form** (all four stages, phone controls), by the owner's choice on 2026-11-15. See `preview/README.md`. Work there only when the owner asks; `game/` stays the production base.
 - All four gates approved. Pre-production documents: `docs/01-gdd.md` to `docs/08-roadmap.md`.
 - **Milestone 0 (foundation) is built** in `game/` (see `game/README.md`): 16 tests pass, type check clean. Waiting for the owner to run it and approve.
 - Not done in Milestone 0: Blender headless scripts and KTX2 compression (system installs not yet permitted); the asset script uses Meshopt + WebP meanwhile.

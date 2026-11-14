@@ -2,62 +2,101 @@
 <html lang="en">
 <head>
 <meta charset="utf-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>PROTOCOL — Preview Slice</title>
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover" />
+<meta name="mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<title>PROTOCOL — Preview</title>
 <style>
-  html, body { margin: 0; height: 100%; background: #000; overflow: hidden; font-family: "Helvetica Neue", Arial, sans-serif; color: #e8e8e8; }
-  canvas { display: block; }
+  html, body { margin: 0; height: 100%; background: #000; overflow: hidden; font-family: "Helvetica Neue", Arial, sans-serif; color: #e8e8e8; overscroll-behavior: none; -webkit-user-select: none; user-select: none; -webkit-touch-callout: none; }
+  canvas { display: block; touch-action: none; }
   .layer { position: fixed; inset: 0; pointer-events: none; }
-  #title { display: flex; flex-direction: column; align-items: center; justify-content: center; background: linear-gradient(#0008, #000c); pointer-events: auto; cursor: pointer; }
+  kbd { border: 1px solid #fff9; border-radius: 4px; padding: 2px 8px; margin-right: 8px; font-family: inherit; font-size: .9em; }
+  #title { display: flex; flex-direction: column; align-items: center; justify-content: center; background: linear-gradient(#0008, #000c); pointer-events: auto; cursor: pointer; z-index: 8; text-align: center; }
   #title h1 { font-size: 9vw; letter-spacing: 1.6vw; margin: 0; font-weight: 200; }
   #title p { letter-spacing: .4em; font-size: 13px; opacity: .8; margin: 10px 0; }
   #title .go { margin-top: 40px; color: #6fd0ff; animation: pulse 1.6s infinite; }
+  #title .help { opacity: .5; margin-top: 30px; letter-spacing: .15em; font-size: 12px; line-height: 2; }
+  .touch #title .keys { display: none; } body:not(.touch) #title .tkeys { display: none; }
   @keyframes pulse { 50% { opacity: .3; } }
   #bars::before, #bars::after { content: ""; position: absolute; left: 0; right: 0; height: 11vh; background: #000; transition: transform .6s; }
   #bars::before { top: 0; } #bars::after { bottom: 0; }
   #bars.off::before { transform: translateY(-100%); } #bars.off::after { transform: translateY(100%); }
   #caption { position: absolute; bottom: 14vh; width: 100%; text-align: center; letter-spacing: .3em; font-size: 15px; text-shadow: 0 0 8px #000; }
   #hud { display: none; }
-  #obj { position: absolute; top: 22px; left: 26px; max-width: 420px; }
-  #obj small { letter-spacing: .3em; font-size: 10px; opacity: .6; display: block; }
-  #obj b { font-weight: 400; font-size: 17px; }
-  #sec { position: absolute; top: 22px; right: 26px; text-align: right; }
-  #sec small { letter-spacing: .3em; font-size: 10px; opacity: .6; display: block; }
-  #sec b { font-weight: 400; font-size: 17px; }
+  #obj { position: absolute; top: max(22px, env(safe-area-inset-top)); left: max(26px, env(safe-area-inset-left)); max-width: 46vw; }
+  #obj small, #sec small { letter-spacing: .3em; font-size: 10px; opacity: .6; display: block; }
+  #obj b, #sec b { font-weight: 400; font-size: 17px; }
+  #sec { position: absolute; top: max(22px, env(safe-area-inset-top)); right: max(26px, env(safe-area-inset-right)); text-align: right; }
+  #health { margin-top: 6px; font-size: 14px; letter-spacing: .25em; color: #ff5a4a; }
+  #health span { opacity: .2; }
   #detect { position: absolute; top: 74px; left: 50%; transform: translateX(-50%); width: 220px; height: 4px; background: #fff2; }
   #bar { height: 100%; width: 0; background: #7cff9a; }
-  #flags { position: absolute; bottom: 24px; left: 26px; font-size: 11px; letter-spacing: .25em; opacity: .75; line-height: 1.9; }
+  #flags { position: absolute; bottom: max(24px, env(safe-area-inset-bottom)); left: max(26px, env(safe-area-inset-left)); font-size: 11px; letter-spacing: .25em; opacity: .75; line-height: 1.9; }
   #prompt { position: absolute; bottom: 20vh; width: 100%; text-align: center; font-size: 15px; letter-spacing: .15em; text-shadow: 0 0 6px #000; }
-  #prompt kbd { border: 1px solid #fff9; border-radius: 4px; padding: 2px 8px; margin-right: 8px; font-family: inherit; }
-  #note { position: absolute; top: 96px; width: 100%; text-align: center; font-size: 13px; letter-spacing: .2em; color: #ffb36b; text-shadow: 0 0 6px #000; }
-  #end { display: none; flex-direction: column; align-items: center; justify-content: center; background: #000d; text-align: center; }
-  #end h2 { font-size: 5vw; letter-spacing: 1vw; font-weight: 200; margin: 0 0 12px; }
-  #end p { max-width: 560px; line-height: 1.7; opacity: .85; }
-  #end small { margin-top: 30px; letter-spacing: .3em; color: #6fd0ff; }
-  #load { display: flex; align-items: center; justify-content: center; background: #000; letter-spacing: .4em; font-size: 12px; }
-  #tag { position: fixed; right: 12px; bottom: 8px; font-size: 10px; opacity: .45; letter-spacing: .15em; }
+  #note { position: absolute; top: 96px; left: 10%; width: 80%; text-align: center; font-size: 13px; letter-spacing: .2em; color: #ffb36b; text-shadow: 0 0 6px #000; }
+  #marker { position: absolute; transform: translate(-50%, -50%); display: none; text-align: center; }
+  #marker i { display: block; width: 12px; height: 12px; margin: 0 auto 4px; border: 2px solid #6fd0ff; transform: rotate(45deg); }
+  #marker span { font-size: 10px; letter-spacing: .2em; color: #6fd0ff; text-shadow: 0 0 4px #000; white-space: nowrap; }
+  #flash { position: fixed; inset: 0; pointer-events: none; background: radial-gradient(transparent 40%, #ff1a1a 120%); opacity: 0; z-index: 3; }
+  #fade { position: fixed; inset: 0; pointer-events: none; background: #000; opacity: 0; transition: opacity .45s; z-index: 9; }
+  #pause, #end { display: none; flex-direction: column; align-items: center; justify-content: center; background: #000d; text-align: center; pointer-events: auto; z-index: 7; padding: 20px; }
+  #pause h2, #end h2 { font-size: 5vw; letter-spacing: 1vw; font-weight: 200; margin: 0 0 12px; }
+  #end p { max-width: 600px; line-height: 1.7; opacity: .85; }
+  #endBtns { display: flex; gap: 14px; flex-wrap: wrap; justify-content: center; margin-top: 24px; }
+  .endbtn { border: 1px solid #6fd0ff; color: #6fd0ff; padding: 12px 22px; letter-spacing: .25em; font-size: 12px; cursor: pointer; }
+  .endbtn kbd { border-color: #6fd0ff88; margin: 0 0 0 10px; }
+  #load { display: flex; align-items: center; justify-content: center; background: #000; letter-spacing: .4em; font-size: 12px; z-index: 10; }
+  #tag { position: fixed; right: 12px; bottom: 8px; font-size: 10px; opacity: .45; letter-spacing: .15em; pointer-events: none; }
+  /* touch controls */
+  #touch { position: fixed; inset: 0; display: none; touch-action: none; z-index: 5; }
+  #stick { position: absolute; left: 40px; bottom: 40px; width: 120px; height: 120px; border-radius: 50%; border: 1px solid #fff4; background: #ffffff10; }
+  #stick.live { bottom: auto; }
+  #knob { position: absolute; left: 33px; top: 33px; width: 54px; height: 54px; border-radius: 50%; background: #ffffff40; }
+  #btns { position: absolute; right: max(22px, env(safe-area-inset-right)); bottom: max(22px, env(safe-area-inset-bottom)); display: grid; grid-template-columns: repeat(2, 72px); gap: 12px; direction: rtl; }
+  .tbtn { width: 72px; height: 72px; border-radius: 50%; background: #ffffff1c; border: 1px solid #fff5; color: #fff; display: flex; align-items: center; justify-content: center; font-size: 10px; letter-spacing: .12em; direction: ltr; touch-action: none; }
+  .tbtn.hot { background: #6fd0ff40; border-color: #6fd0ff; }
+  .tbtn.down { background: #ffffff55; }
+  #tpause { position: absolute; top: max(14px, env(safe-area-inset-top)); left: 50%; transform: translateX(-50%); width: 44px; height: 44px; font-size: 13px; }
+  .touch #flags { display: none; }
+  .touch #prompt { bottom: 46vh; }
+  .touch #obj b, .touch #sec b { font-size: 13px; }
+  .touch #note { top: 70px; font-size: 11px; }
+  #rotate { display: none; position: fixed; inset: 0; z-index: 20; background: #000; align-items: center; justify-content: center; letter-spacing: .3em; font-size: 13px; text-align: center; padding: 30px; }
+  @media (orientation: portrait) { .touch #rotate { display: flex; } }
+  @media (max-height: 500px) { #detect { top: 56px; } #title h1 { font-size: 12vw; } }
 </style>
 </head>
 <body>
 <div id="bars" class="layer off"></div>
 <div id="hud" class="layer">
   <div id="obj"><small>OBJECTIVE</small><b id="objText"></b></div>
-  <div id="sec"><small>SECURITY</small><b id="secText"></b></div>
+  <div id="sec"><small id="secLabel">SECURITY</small><b id="secText"></b><div id="health"></div></div>
   <div id="detect"><div id="bar"></div></div>
   <div id="note"></div>
   <div id="prompt"></div>
   <div id="flags"></div>
+  <div id="marker"><i></i><span id="markerText"></span></div>
 </div>
 <div id="caption" class="layer"></div>
+<div id="flash"></div>
+<div id="touch">
+  <div id="stick"><div id="knob"></div></div>
+  <div id="btns"></div>
+  <div id="tpause" class="tbtn">II</div>
+</div>
 <div id="title" class="layer">
   <h1>PROTOCOL</h1>
   <p>ONE DEVICE. NO WAY BACK.</p>
-  <p class="go">CLICK TO BEGIN</p>
-  <p style="opacity:.5;margin-top:30px">WASD move · MOUSE look · SHIFT sprint · C sneak · E interact · F takedown</p>
+  <p class="go">TAP OR CLICK TO BEGIN</p>
+  <p class="help keys">ON FOOT · WASD move · MOUSE look · SHIFT sprint · C sneak · E interact · F takedown · G throw<br>DRIVING · W/S throttle and brake · A/D steer · SPACE handbrake · ESC pause</p>
+  <p class="help tkeys">LEFT THUMB move or steer · RIGHT THUMB look · BUTTONS for actions</p>
 </div>
-<div id="end" class="layer"><h2 id="endTitle"></h2><p id="endText"></p><small>PRESS R TO PLAY AGAIN</small></div>
+<div id="pause" class="layer"><h2>PAUSED</h2><div class="endbtn" id="pauseBtn">RESUME</div></div>
+<div id="end" class="layer"><h2 id="endTitle"></h2><p id="endText"></p><div id="endBtns"></div></div>
+<div id="fade"></div>
 <div id="load" class="layer">LOADING</div>
-<div id="tag">PREVIEW SLICE · PLACEHOLDER MODELS · NOT FINAL ART</div>
-<script type="module" src="/main.js"></script>
+<div id="rotate">ROTATE YOUR PHONE<br>TO LANDSCAPE</div>
+<div id="tag">PREVIEW · PLACEHOLDER MODELS · NOT FINAL ART</div>
+<script type="module" src="/src/main.js"></script>
 </body>
 </html>
