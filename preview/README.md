@@ -1,5 +1,7 @@
 # PROTOCOL — preview
 
+**Play it:** https://protocolgame.vercel.app
+
 A playable, start-to-finish version of the planned game with placeholder 3D. Built to judge story, flow and feel before real assets are made in Blender. It is **not** the production codebase (`game/` is).
 
 ## Run

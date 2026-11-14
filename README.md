@@ -2,6 +2,8 @@
 
 **One device. No way back.**
 
+**Play the preview:** https://protocolgame.vercel.app
+
 An original cinematic third-person stealth / heist / vehicle-escape game for the browser. Currently in pre-production: no game code yet.
 
 - `AGENTS.md` — rules and current status for any coding agent. Start here.
