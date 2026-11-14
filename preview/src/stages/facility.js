@@ -175,7 +175,7 @@ export async function create(ctx) {
   function playUpdate(dt) {
     foot.update(dt);
     if (input.pressed('interact')) interact();
-    if (input.pressed('takedown') || (params.has('autofight') && stealth.attackPrompt()?.text.startsWith('FIGHT'))) stealth.attack();
+    if (input.pressed('takedown') || (input.held('takedown') && stealth.attackPrompt()?.text.startsWith('FIGHT')) || (params.has('autofight') && stealth.attackPrompt()?.text.startsWith('FIGHT'))) stealth.attack();
     if (input.pressed('throw')) { const at = foot.throwStone(); if (at) setTimeout(() => stealth.noise(at, 12), 350); }
     if (phase !== 'play') return;
     const atDoor = doorSealed && !M.stolen && player.root.position.distanceTo(DOOR_OUT) < 2.6;

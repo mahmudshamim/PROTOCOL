@@ -115,7 +115,7 @@ export async function create(ctx) {
   function play(dt) {
     foot.update(dt);
     if (input.pressed('interact')) interact();
-    if (input.pressed('takedown')) stealth.attack();
+    if (input.pressed('takedown') || (input.held('takedown') && stealth.attackPrompt()?.text.startsWith('FIGHT'))) stealth.attack();
     if (input.pressed('throw')) { const at = foot.throwStone(); if (at) setTimeout(() => stealth.noise(at, 12), 350); }
     if (phase !== 'play') return;
     stealth.update(dt);

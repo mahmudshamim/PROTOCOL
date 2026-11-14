@@ -131,7 +131,7 @@ export function createStealth(world, opts) {
           g.punchT = (g.punchT ?? 0.8) - dt;
           if (g.punchT <= 0 && g.stun <= 0) {
             g.punchT = 1.1 + Math.random() * 0.4; audio.burst(0.08, 0.2, 900);
-            if (Math.random() < 0.4) {
+            if (Math.random() < 0.3) {
               M.health--; hud.flash(); hud.health(M.health); audio.burst(0.2, 0.3, 400);
               if (M.health <= 0) return opts.onCapture('They beat you down and cuffed you.');
             }
@@ -216,11 +216,13 @@ export function createStealth(world, opts) {
         knockOut(quiet, quiet.def.control ? 'CONTROL ROOM DOWN — NOBODY IS WATCHING THE CAMERAS' : 'GUARD DOWN — HIS RADIO CALL NEVER WENT OUT');
         return true;
       }
-      const g = nearest(2.1, canFight); if (!g) return false;
-      attackCd = 0.3; g.hp = (g.hp ?? 3) - 1; g.stun = 0.5; g.punchT = Math.max(g.punchT ?? 0, 0.5);
-      if (g.radio !== null) g.radio += 0.7; // a punch interrupts his radio call
+      const g = nearest(3.2, canFight); if (!g) return false;
+      attackCd = 0.32; g.hp = (g.hp ?? 2) - 1; g.stun = 1.0; g.punchT = Math.max(g.punchT ?? 0, 1.2);
+      if (g.radio !== null) g.radio += 1.0; // a punch interrupts his radio call
       const p = player.root.position, gp = g.root.position, d = Math.max(0.01, gp.distanceTo(p));
-      gp.x += ((gp.x - p.x) / d) * 0.6; gp.z += ((gp.z - p.z) / d) * 0.6; world.resolve(gp);
+      if (d > 1.2) { p.x += ((gp.x - p.x) / d) * (d - 1.1); p.z += ((gp.z - p.z) / d) * (d - 1.1); world.resolve(p); } // lunge in
+      player.h = Math.atan2(gp.x - p.x, gp.z - p.z); player.root.rotation.y = player.h; // face him
+      gp.x += ((gp.x - p.x) / d) * 0.5; gp.z += ((gp.z - p.z) / d) * 0.5; world.resolve(gp);
       audio.burst(0.12, 0.35, 700); audio.ping(70, 0.2, 0.25);
       this.noise(gp.clone(), 15);
       if (g.hp <= 0) knockOut(g, g.radio === null && !M.alarm ? 'GUARD DOWN — LOUD, BUT HE NEVER GOT ON THE RADIO' : 'GUARD DOWN — THAT FIGHT WAS LOUD');
@@ -229,8 +231,8 @@ export function createStealth(world, opts) {
     /** Prompt for the F key, or null. */
     attackPrompt() {
       if (nearest(1.9)) return { key: 'F', text: 'TAKEDOWN', action: 'takedown' };
-      const g = nearest(2.1, canFight);
-      return g ? { key: 'F', text: `FIGHT · ${'●'.repeat(g.hp ?? 3)}`, action: 'takedown' } : null;
+      const g = nearest(3.2, canFight);
+      return g ? { key: 'F', text: `FIGHT · ${'●'.repeat(g.hp ?? 2)}`, action: 'takedown' } : null;
     },
     /** A distraction or loud sound: guards in range go and look. */
     noise(pos, radius) {
