@@ -115,7 +115,7 @@ export async function create(ctx) {
   function play(dt) {
     foot.update(dt);
     if (input.pressed('interact')) interact();
-    if (input.pressed('takedown')) stealth.takedown();
+    if (input.pressed('takedown')) stealth.attack();
     if (input.pressed('throw')) { const at = foot.throwStone(); if (at) setTimeout(() => stealth.noise(at, 12), 350); }
     if (phase !== 'play') return;
     stealth.update(dt);
@@ -133,7 +133,7 @@ export async function create(ctx) {
     const p = player.root.position;
     let pr = null;
     if (p.distanceTo(DOOR) < 3) pr = { key: 'E', text: 'TAKE THE CAR', action: 'interact' };
-    else if (stealth.nearest(1.9)) pr = { key: 'F', text: 'TAKEDOWN', action: 'takedown' };
+    else pr = stealth.attackPrompt();
     hud.prompt(pr);
     hud.flags(`${isLit(p) ? 'VISIBILITY · LIT' : 'VISIBILITY · SHADOW'}<br>${player.sneak ? 'MOVEMENT · SNEAK' : player.speed > 4 ? 'MOVEMENT · SPRINT (LOUD)' : 'MOVEMENT · WALK'}<br>STONES · ${M.throws}${policeTimer !== null ? `<br>POLICE IN · ${Math.ceil(policeTimer)} s` : ''}`);
   }
@@ -153,7 +153,7 @@ export async function create(ctx) {
     enter() {
       saveCheckpoint('yard');
       hud.show(true); hud.bars(false); hud.health(M.health); hud.secLabel('SECURITY');
-      input.setButtons([{ a: 'interact', label: 'ACT' }, { a: 'takedown', label: 'GRAB' }, { a: 'sprint', label: 'RUN' }, { a: 'sneak', label: 'SNEAK' }, { a: 'throw', label: 'THROW' }]); input.showTouch(true);
+      input.setButtons([{ a: 'interact', label: 'ACT' }, { a: 'takedown', label: 'FIGHT' }, { a: 'sprint', label: 'RUN' }, { a: 'sneak', label: 'SNEAK' }, { a: 'throw', label: 'THROW' }]); input.showTouch(true);
       hud.objective('Find container HLX-7 in the north-east row. The car is inside.');
       hud.marker(new THREE.Vector3(tc.x, 1.5, tc.z + 3), 'HLX-7');
       hud.note(policeTimer !== null ? 'SABLE: POLICE ARE ON THEIR WAY TO THE YARD. MOVE.' : 'SABLE: QUIET YARD. KEEP IT THAT WAY.');

@@ -155,7 +155,7 @@ export async function create(ctx) {
     audio.burst(0.6, 0.35, 500); stealth.noise(DOOR_OUT, 18); hud.note('DOOR FORCED — THAT WAS LOUD. MOVE.');
   }
 
-  const buttons = () => input.setButtons([{ a: 'interact', label: 'ACT' }, { a: 'takedown', label: 'GRAB' }, { a: 'sprint', label: 'RUN' }, { a: 'sneak', label: 'SNEAK' }, { a: 'throw', label: 'THROW' }]);
+  const buttons = () => input.setButtons([{ a: 'interact', label: 'ACT' }, { a: 'takedown', label: 'FIGHT' }, { a: 'sprint', label: 'RUN' }, { a: 'sneak', label: 'SNEAK' }, { a: 'throw', label: 'THROW' }]);
 
   function objective() {
     hud.objective(M.stolen ? 'Get out. Reach the motorcycle beyond the west fence.' : doorSealed ? 'Main door is sealed. Use the east side door, or force the main door (loud).' : 'Get inside and steal the device from the lab. Walk in through the gate, or use the cut in the west fence.');
@@ -175,7 +175,7 @@ export async function create(ctx) {
   function playUpdate(dt) {
     foot.update(dt);
     if (input.pressed('interact')) interact();
-    if (input.pressed('takedown')) stealth.takedown();
+    if (input.pressed('takedown') || (params.has('autofight') && stealth.attackPrompt()?.text.startsWith('FIGHT'))) stealth.attack();
     if (input.pressed('throw')) { const at = foot.throwStone(); if (at) setTimeout(() => stealth.noise(at, 12), 350); }
     if (phase !== 'play') return;
     const atDoor = doorSealed && !M.stolen && player.root.position.distanceTo(DOOR_OUT) < 2.6;
@@ -196,7 +196,7 @@ export async function create(ctx) {
     else if (M.stolen && p.distanceTo(BIKE) < 2.8) pr = { key: 'E', text: 'RIDE', action: 'interact' };
     else if (doorSealed && !M.stolen && p.distanceTo(DOOR_OUT) < 2.6) pr = { key: 'HOLD E', text: forceT > 0 ? `FORCING THE DOOR · ${Math.round((forceT / 2.5) * 100)}%` : 'FORCE THE DOOR (LOUD)', action: 'interact' };
     else if (!M.stolen && p.distanceTo(BIKE) < 3.5) pr = { key: '—', text: 'GETAWAY BIKE · STEAL THE DEVICE FIRST', action: null };
-    else if (stealth.nearest(1.9)) pr = { key: 'F', text: 'TAKEDOWN', action: 'takedown' };
+    else pr = stealth.attackPrompt();
     hud.prompt(pr);
     hud.flags(`${isLit(p) ? 'VISIBILITY · LIT' : 'VISIBILITY · SHADOW'}<br>${player.sneak ? 'MOVEMENT · SNEAK' : player.speed > 4 ? 'MOVEMENT · SPRINT (LOUD)' : 'MOVEMENT · WALK'}<br>STONES · ${M.throws}`);
     objective();
