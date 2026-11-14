@@ -22,6 +22,9 @@
 <style>
   html, body { margin: 0; height: 100%; background: #000; overflow: hidden; font-family: "Helvetica Neue", Arial, sans-serif; color: #e8e8e8; overscroll-behavior: none; -webkit-user-select: none; user-select: none; -webkit-touch-callout: none; }
   canvas { display: block; touch-action: none; }
+  html, body, .tbtn, #touch, #title, .endbtn { touch-action: manipulation; }
+  .tbtn, #touch { touch-action: none; -webkit-tap-highlight-color: transparent; }
+  * { -webkit-tap-highlight-color: transparent; }
   .layer { position: fixed; inset: 0; pointer-events: none; }
   kbd { border: 1px solid #fff9; border-radius: 4px; padding: 2px 8px; margin-right: 8px; font-family: inherit; font-size: .9em; }
   #title { display: flex; flex-direction: column; align-items: center; justify-content: center; background: linear-gradient(#0008, #000c); pointer-events: auto; cursor: pointer; z-index: 8; text-align: center; }

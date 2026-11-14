@@ -6,7 +6,7 @@ import { audio } from '../audio.js';
 import { hud } from '../hud.js';
 import { input } from '../input.js';
 import { Road } from '../road.js';
-import { buildBike, buildPickup, Vehicle, collide } from '../vehicles.js';
+import { buildBike, buildPolice, Vehicle, collide } from '../vehicles.js';
 
 const GOAL = 2400;
 
@@ -31,12 +31,14 @@ export async function create(ctx) {
   const traffic = createTraffic(W, road, { count: 6, lane: 2.3, seed: 4 }); traffic.reset(0);
   const chase = M.bikeSeen;
   const pickups = chase ? [0, 1].map((i) => {
-    const m = buildPickup(); W.add(m.root);
+    const m = buildPolice(i === 1); W.add(m.root); m.root.visible = false;
     const v = new Vehicle(m, { maxSpeed: 42, accel: 11, turn: 1.7, grip: 6, radius: 1.5 });
     v.place(road.cx(70 + i * 25) + (i ? 2 : -2), 70 + i * 25, road.heading(70), 0); v.active = false; v.wait = 4 + i * 2.5;
     return v;
   }) : [];
 
+  // two lights shared by whichever police car is closest (a fixed light count avoids shader rebuilds)
+  const redL = new THREE.PointLight(0xff2020, 0, 22, 2), blueL = new THREE.PointLight(0x2050ff, 0, 22, 2); W.add(redL); W.add(blueL);
   let phase = 'ride', crashT = 0, t = 0;
   const camPos = new THREE.Vector3(), look = new THREE.Vector3(), fwd = new THREE.Vector3();
 
@@ -44,7 +46,7 @@ export async function create(ctx) {
     if (phase !== 'ride') return;
     phase = 'crashed'; crashT = 2; M.crashes++; bike.speed = 0;
     audio.burst(0.5, 0.35, 700);
-    if (M.crashes >= 3) { phase = 'over'; return ctx.fail('WIPED OUT', `${why} Third crash. The station's pickups were on you before you could stand.`); }
+    if (M.crashes >= 3) { phase = 'over'; return ctx.fail('WIPED OUT', `${why} Third crash. The police were on you before you could stand.`); }
     hud.note(`${why.toUpperCase()} — ${3 - M.crashes} LEFT`);
   }
 
@@ -70,14 +72,25 @@ export async function create(ctx) {
     traffic.update(dt, d);
     if (traffic.hit(bike.pos, bike.radius)) return crash('Hit a car');
     for (const p of pickups) {
-      if (!p.active) { if ((p.wait -= dt) <= 0) { p.active = true; p.place(road.cx(-(d - 80)) + (p === pickups[0] ? -2 : 2), -(d - 80), road.heading(-(d - 80)), bike.speed); hud.note('STATION PICKUPS BEHIND YOU'); } continue; }
+      if (!p.active) { if ((p.wait -= dt) <= 0) { p.active = true; p.place(road.cx(-(d - 80)) + (p === pickups[0] ? -2 : 2), -(d - 80), road.heading(-(d - 80)), bike.speed); p.mesh.root.visible = true; hud.note('POLICE BEHIND YOU'); } continue; }
       const pd = -p.pos.z, ahead = pd > d;
       const target = pd < d - 15 ? road.point(Math.min(d + 6, pd + 30), road.lateral(bike.pos)) : bike.pos;
       const a = p.aim(target, ahead ? bike.speed * 0.6 : clamp(bike.speed + 6, 18, 46));
       p.update(dt, a.throttle, a.steer);
       if (pd < d - 260) { p.active = false; p.wait = 1e9; p.mesh.root.visible = false; }
-      if (collide(bike, p) > 5) crash('Rammed by a pickup');
+      if (collide(bike, p) > 5) crash('Rammed by the police');
     }
+    // police lights and siren
+    const flash = Math.floor(t * 8) % 2 === 0;
+    let near = Infinity, nearest = null;
+    for (const p of pickups) {
+      if (!p.active) continue;
+      p.mesh.red.emissiveIntensity = flash ? 7 : 0.4; p.mesh.blue.emissiveIntensity = flash ? 0.4 : 7;
+      const dist = p.pos.distanceTo(bike.pos); if (dist < near) { near = dist; nearest = p; }
+    }
+    if (nearest && near < 70) { redL.position.copy(nearest.pos).y = 2.2; blueL.position.copy(nearest.pos).y = 2.2; redL.intensity = flash ? 40 : 0; blueL.intensity = flash ? 0 : 40; }
+    else redL.intensity = blueL.intensity = 0;
+    audio.sirenLevel(nearest ? clamp(1 - near / 180, 0.1, 1) : 0);
     // lean into turns
     bikeMesh.body.rotation.z = lerp(bikeMesh.body.rotation.z, bike.steer * clamp(bike.speed / 20, 0, 1) * 0.45, Math.min(1, dt * 8));
     if (d >= GOAL) { phase = 'arrive'; t = 0; }
@@ -100,7 +113,7 @@ export async function create(ctx) {
       hud.show(true); hud.bars(false); hud.marker(null); hud.health(null); hud.foe(null); hud.bar(null); hud.prompt(null);
       hud.secLabel('SPEED');
       input.setButtons([{ a: 'brake', label: 'BRAKE' }]); input.showTouch(true);
-      hud.note(chase ? 'THEY SAW THE BIKE LEAVE. EXPECT COMPANY.' : 'SABLE: CONTAINER YARD, TWO AND A HALF KLICKS. WATCH THE TRAFFIC.');
+      hud.note(chase ? 'SABLE: THEY SAW THE BIKE. POLICE ARE COMING UP BEHIND YOU.' : 'SABLE: CONTAINER YARD, TWO AND A HALF KLICKS. WATCH THE TRAFFIC.');
       road.update(bike.pos); chaseCam(0, true);
     },
     update(dt) {
@@ -121,6 +134,6 @@ export async function create(ctx) {
       audio.engine(clamp(Math.abs(bike.speed) / 44, 0, 1), phase === 'over' ? 0 : 1);
     },
     animate(dt) { rider.mixer.update(dt); ridePose(rider, { lean: 0.3, hands: 0.4 }); setFocus(bike.pos); },
-    dispose() { audio.engine(0, 0); camera.fov = 55; camera.updateProjectionMatrix(); hud.secLabel('SECURITY'); W.dispose(); },
+    dispose() { audio.engine(0, 0); audio.sirenLevel(0); camera.fov = 55; camera.updateProjectionMatrix(); hud.secLabel('SECURITY'); W.dispose(); },
   };
 }

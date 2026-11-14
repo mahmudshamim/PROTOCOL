@@ -78,7 +78,8 @@ function goFullscreen(explain = true) {
 }
 const syncFs = () => document.body.classList.toggle('fs', !!(document.fullscreenElement || document.webkitFullscreenElement));
 document.addEventListener('fullscreenchange', syncFs); document.addEventListener('webkitfullscreenchange', syncFs);
-$('tfull').addEventListener('pointerdown', (e) => { e.stopPropagation(); goFullscreen(); });
+$('tfull').addEventListener('pointerdown', (e) => e.stopPropagation());
+$('tfull').addEventListener('pointerup', (e) => { e.stopPropagation(); goFullscreen(); });
 $('pauseFull').addEventListener('click', () => goFullscreen());
 $('iosHint').addEventListener('click', () => ($('iosHint').style.display = 'none'));
 
@@ -95,6 +96,12 @@ $('load').style.display = 'none';
 if (jump) { $('title').style.display = 'none'; stage.enter(); phase = 'play'; }
 else phase = 'menu';
 $('title').addEventListener('click', startGame);
+// no page zoom or text selection from fast taps on phones
+document.addEventListener('dblclick', (e) => e.preventDefault(), { passive: false });
+document.addEventListener('gesturestart', (e) => e.preventDefault(), { passive: false });
+$('touch').addEventListener('touchstart', (e) => { if (e.touches.length > 1 || e.target.closest('.tbtn')) e.preventDefault(); }, { passive: false });
+let lastTouch = 0;
+document.addEventListener('touchend', (e) => { const now = performance.now(); if (now - lastTouch < 350) e.preventDefault(); lastTouch = now; }, { passive: false });
 $('pauseBtn').addEventListener('click', () => togglePause(false));
 if (LOW) $('tag').textContent += ' · LOW QUALITY (PHONE)';
 
