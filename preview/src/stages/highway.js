@@ -39,12 +39,14 @@ export async function create(ctx) {
 
   // two lights shared by whichever police car is closest (a fixed light count avoids shader rebuilds)
   const redL = new THREE.PointLight(0xff2020, 0, 22, 2), blueL = new THREE.PointLight(0x2050ff, 0, 22, 2); W.add(redL); W.add(blueL);
-  let phase = 'ride', crashT = 0, t = 0;
+  let phase = 'ride', crashT = 0, t = 0, graceT = 0;
   const camPos = new THREE.Vector3(), look = new THREE.Vector3(), fwd = new THREE.Vector3();
 
   function crash(why) {
     if (phase !== 'ride') return;
-    phase = 'crashed'; crashT = 2; M.crashes++; bike.speed = 0;
+    phase = 'crashed'; crashT = 2; graceT = 5; M.crashes++; bike.speed = 0;
+    for (const p of pickups) if (p.active && p.pos.distanceTo(bike.pos) < 25) p.speed *= 0.3; // police brake when you go down
+    if (params.has('log')) console.log('CRASH ' + why + ' at ' + Math.round(-bike.pos.z));
     audio.burst(0.5, 0.35, 700);
     if (M.crashes >= 3) { phase = 'over'; return ctx.fail('WIPED OUT', `${why} Third crash. The police were on you before you could stand.`); }
     hud.note(`${why.toUpperCase()} — ${3 - M.crashes} LEFT`);
@@ -69,16 +71,17 @@ export async function create(ctx) {
         bike.pos.x = o.x + (dx / dist) * (o.r + bike.radius); bike.pos.z = o.z + (dz / dist) * (o.r + bike.radius); bike.speed *= 0.3;
       }
     }
+    graceT = Math.max(0, graceT - dt);
     traffic.update(dt, d);
     if (traffic.hit(bike.pos, bike.radius)) return crash('Hit a car');
     for (const p of pickups) {
       if (!p.active) { if ((p.wait -= dt) <= 0) { p.active = true; p.place(road.cx(-(d - 80)) + (p === pickups[0] ? -2 : 2), -(d - 80), road.heading(-(d - 80)), bike.speed); p.mesh.root.visible = true; hud.note('POLICE BEHIND YOU'); } continue; }
       const pd = -p.pos.z, ahead = pd > d;
       const target = pd < d - 15 ? road.point(Math.min(d + 6, pd + 30), road.lateral(bike.pos)) : bike.pos;
-      const a = p.aim(target, ahead ? bike.speed * 0.6 : clamp(bike.speed + 6, 18, 46));
+      const a = p.aim(graceT > 0 ? road.point(pd + 20, road.lateral(p.pos)) : target, graceT > 0 ? Math.max(0, bike.speed - 4) : ahead ? bike.speed * 0.6 : clamp(bike.speed + 6, 18, 46));
       p.update(dt, a.throttle, a.steer);
       if (pd < d - 260) { p.active = false; p.wait = 1e9; p.mesh.root.visible = false; }
-      if (collide(bike, p) > 5) crash('Rammed by the police');
+      if (collide(bike, p) > 8 && graceT <= 0) crash('Rammed by the police');
     }
     // police lights and siren
     const flash = Math.floor(t * 8) % 2 === 0;
